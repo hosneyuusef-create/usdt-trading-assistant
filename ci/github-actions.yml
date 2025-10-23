@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        shell: powershell
+        run: ./scripts/tests/run_unit_tests.ps1
+
+      - name: Run integration tests
+        shell: powershell
+        run: ./scripts/tests/run_integration_tests.ps1
+
+      - name: Run e2e tests
+        shell: powershell
+        run: ./scripts/tests/run_e2e_tests.ps1
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: artefacts/test_reports

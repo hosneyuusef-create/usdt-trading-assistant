@@ -1,0 +1,11 @@
+Requirement-ID,Description,MoSCoW,Owner,Status,Design Stage,Implementation Artefact,Test Reference,Last Updated,Notes
+REQ-001,End-to-end USDT purchase flow,Must,Product Lead,Answered,M13-M16,src/backend/rfq; src/backend/settlement,M24-E2E-1,2025-10-22,
+REQ-006,End-to-end USDT sell flow,Must,Product Lead,Answered,M13-M16,src/backend/rfq; src/backend/settlement,M24-E2E-2,2025-10-22,
+REQ-010,Automatic winner selection by effective price,Must,Tech Lead,Answered,M15,src/backend/award_engine,M15-E2E-1,2025-10-22,
+REQ-012,Pre-award confidentiality,Must,Security Lead,Answered,M3;M6;M14,artefacts/Workflow_Statecharts.pdf; api/telegram_webhook.yaml,M14-E2E-1,2025-10-22,
+REQ-016,Two-step settlement with receipt upload,Must,Ops Lead,Answered,M16,src/backend/settlement; artefacts/Evidence_Spec.md,M16-E2E-1;M16-E2E-2;M16-E2E-3,2025-10-22,
+REQ-017,Transparent user policies,Must,Product Lead,Answered,M7;M12;M22,artefacts/message_templates/; artefacts/Config_Versioning.md,Manual QA regression,2025-10-22,
+REQ-018,Dispute handling and admin decision,Should,Ops Lead,Answered,M18,src/backend/dispute,M18-E2E-1;M18-E2E-3,2025-10-22,
+REQ-019,Native deployment constraint,Must,DevOps Lead,Answered,M8;M25,scripts/setup/; artefacts/Prod_Deployment.md,M25-E2E-1,2025-10-22,
+REQ-NC-001,Non-custodial evidence handling,Must,Ops Lead,Answered,M6;M16;M18,api/settlement_api.yaml; artefacts/Evidence_Spec.md,M16-E2E-3;M18-E2E-4,2025-10-22,
+REQ-NC-002,Auditable evidence store,Must,Ops Lead,Answered,M16;M18,artefacts/Evidence_Spec.md; src/backend/dispute,M18-E2E-1,2025-10-22,
