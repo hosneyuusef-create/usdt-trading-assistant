@@ -1,0 +1,15 @@
+Metric,Value
+Total Disputes,5
+Resolved Disputes,4
+Resolution Rate (%),80.0
+Avg Resolution Time (hrs),2.5
+
+Decision Type,Count,Percentage
+favor_claimant,2,40.0
+favor_respondent,1,20.0
+partial_favor,1,20.0
+inconclusive,1,20.0
+
+Provider ID,Total Disputes,Disputes Against,Favor Count,Against Count
+9001,2,1,1,1
+9101,1,1,0,1

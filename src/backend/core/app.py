@@ -16,7 +16,9 @@ from ..notifications import router as notifications_router
 from ..award_engine import router as award_router
 from ..settlement import router as settlement_router
 from ..partial_fill import router as partial_fill_router
+from ..scoring import router as scoring_router
 from ..dispute.router import router as dispute_router
+from ..analytics import router as analytics_router
 
 TRACE_HEADER = "X-Trace-ID"
 
@@ -61,7 +63,9 @@ def create_app() -> FastAPI:
     app.include_router(award_router)
     app.include_router(settlement_router)
     app.include_router(partial_fill_router)
+    app.include_router(scoring_router)
     app.include_router(dispute_router)
+    app.include_router(analytics_router)
     return app
 
 

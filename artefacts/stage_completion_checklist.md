@@ -92,10 +92,10 @@
 | مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
 |------|--------------|-------------------------|
 | خروجی‌های ملموس مرحله مطابق `marahel.txt` تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | `db/schema/database_schema_v1.sql`, `db/migrations/001_initial_schema.sql`, `db/migrations/rollback/001_initial_schema_rollback.sql`, `artefacts/SchemaPerformanceReport.md`. |
-| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | لاگ‌ها در `artefacts/test_reports/M05_test_migration.log` و `artefacts/test_reports/M05_test_performance.log`. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | لاگ‌ها در rtefacts/test_reports/M05_test_migration.log و rtefacts/test_reports/M05_test_performance.log (به‌روزرسانی 2025-10-24). |
 | Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | تمام فیلدها و انواع داده مشخص شد؛ فرض جدیدی افزوده نشد. |
 | تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | فایل‌های DDL/Migration و گزارش کارایی ثبت شده است. |
-| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | Migration و Rollback بدون خطا اجرا شد؛ شاخص‌ها ≥30 (68) و شامل 2 GIN است؛ پرس‌وجوها <50ms بودند. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | Migration و Rollback بدون خطا اجرا شد؛ شاخص‌ها ≥30 (68) و شامل 2 GIN است؛ پرس‌وجوهای نمونه در 2025-10-24 <50ms باقی ماندند. |
 | Lessons Learned ثبت شده (در صورت وجود). | ✖ | درس‌آموخته به پایان فاز پایگاه داده منتقل شد. |
 
 ## جمع‌بندی
@@ -282,10 +282,10 @@
 | مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
 |------|--------------|-------------------------|
 | خروجی‌های ملموس مرحله مطابق `marahel.txt` تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | `src/backend/award_engine/`, `artefacts/Award_Audit.xlsx`, `artefacts/scoring_rules.md`. |
-| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | `artefacts/test_reports/M15_award_tests.md`, آزمون‌های `tests/test_award_engine.py`. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | `artefacts/test_reports/M15_award_tests.md`, آزمون‌های `tests/test_award_engine.py` (auto، partial fill، manual override). |
 | Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | هیچ فرض جدیدی لازم نشد؛ سیاست Tie-break و Partial Fill در artefact ثبت گردید. |
 | تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | لاگ `logs/award_events.json` و فایل ممیزی Excel تولید و نسخه‌برداری شد. |
-| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | Tie-break قیمت/زمان و Partial Fill موفق، فرم ممیزی تکمیل و ذخیره شد. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | Tie-break قیمت/زمان، Partial Fill و Manual Override ثبت و فرم ممیزی auto/manual تولید شد. |
 | Lessons Learned ثبت شده (در صورت وجود). | ✔ | توصیه شد برای مراحل بعد، اتصال مستقیم به پایگاه داده و ثبت reviewer انسانی در حالت دستی پیش‌بینی شود. |
 
 ## جمع‌بندی
@@ -353,4 +353,61 @@
 
 ## جمع‌بندی
 - **موارد نیازمند پیگیری در مرحله بعد:** اتصال Dispute به Stage 20 برای تاثیر بر امتیاز پرووایدر، توسعه Webhook اعلان تصمیمات به طرفین (مرحله 19/21).
+- **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24
+
+- **Stage ID / Name:** M19 / پیام‌ها و نوتیفیکیشن‌ها
+- **تاریخ شروع:** 2025-10-24
+- **تاریخ پایان:** 2025-10-24
+- **مسئول مرحله:** Codex Agent (به نمایندگی از تیم پروژه)
+
+## چک‌لیست خروجی‌ها
+| مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
+|------|--------------|-------------------------|
+| خروجی‌های ملموس مرحله مطابق `marahel.txt` تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | `src/backend/notifications/`, `artefacts/message_templates/`, `artefacts/Notification_Disclaimer.txt`, `artefacts/Telemetry_Config.json`. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | `artefacts/test_reports/M19_notifications_tests.md`, آزمون‌های `tests/test_notifications.py`. |
+| Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | فرض جدیدی ثبت نشد؛ متریک‌ها با پیکربندی موجود Stage 23 هم‌راستا هستند. |
+| تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | Manifest قالب‌ها و هش‌ها در `artefacts/message_templates/manifest.json` ثبت شد؛ تصمیمات مربوط به دیسکلِیمر در گزارش تست مستند شد. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | Dry-run پیام‌های بند ۱۲ بدون خطا، دیسکلِیمر دو زبانه به پیام‌های تسویه/اختلاف افزوده شد و هشدارهای تلمتری مطابق آستانه‌ها ایجاد گردید. |
+| Lessons Learned ثبت شده (در صورت وجود). | ✔ | توصیه شد برای Stage 23، اتصال مستقیم به سامانه مانیتورینگ انجام و اعتبارسنجی هش‌ها در CI نیز تکرار شود. |
+
+## جمع‌بندی
+- **موارد نیازمند پیگیری در مرحله بعد:** همگام‌سازی خروجی تلمتری با لایه گزارش Stage 23 و اضافه‌کردن کانال‌های جدید در صورت درخواست Stakeholder.
+- **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24
+
+- **Stage ID / Name:** M20 / امتیازدهی و محدودیت‌ها
+- **تاریخ شروع:** 2025-10-24
+- **تاریخ پایان:** 2025-10-24
+- **مسئول مرحله:** Codex Agent (به نمایندگی از تیم پروژه)
+
+## چک‌لیست خروجی‌ها
+| مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
+|------|--------------|-------------------------|
+| خروجی‌های ملموس مرحله مطابق marahel.txt تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | src/backend/scoring/, rtefacts/Scoring_Model.xlsx, logs/scoring_events.json. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | rtefacts/test_reports/M20_scoring_tests.md, آزمون‌های 	ests/test_scoring.py, 	ests/test_provider_management.py. |
+| Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | فرض جدیدی اضافه نشد؛ وزن‌ها در rtefacts/Scoring_Model.xlsx مستند شد. |
+| تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | گزارش تست Stage 20 و لاگ logs/scoring_events.json مستندسازی شد. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | کاهش نمره → محدودیت Eligibility و سقف معاملات تأیید شد؛ لاگ‌ها با معیار پذیرش Stage 20 مطابقت دارد. |
+| Lessons Learned ثبت شده (در صورت وجود). | ✔ | توصیه شد در Stage 21، خروجی متریک‌ها مستقیماً به داشبورد متصل شود. |
+
+## جمع‌بندی
+- **موارد نیازمند پیگیری در مرحله بعد:** اتصال متریک‌های ثبت شده به گزارش Stage 21 و بررسی همگام‌سازی با Eligibility UI.
+- **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24
+
+- **Stage ID / Name:** M21 / گزارش‌ها و داشبورد ادمین
+- **تاریخ شروع:** 2025-10-24
+- **تاریخ پایان:** 2025-10-24
+- **مسئول مرحله:** Codex Agent (به نمایندگی از تیم پروژه)
+
+## چک‌لیست خروجی‌ها
+| مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
+|------|--------------|-------------------------|
+| خروجی‌های ملموس مرحله مطابق `marahel.txt` تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | `src/backend/analytics/` (router, service, schemas), `reports/kpi_dashboard/`, `artefacts/report_specs_stage21.csv`. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | `artefacts/test_reports/M21_analytics_tests.md`, آزمون‌های `tests/test_analytics.py` (10/10 PASSED). |
+| Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | هیچ فرض جدیدی تعریف نشد؛ سه گزارش اصلی مطابق دستور Stage 21 پیاده شد. |
+| تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | Analytics router به `core/app.py` اضافه شد، مشخصات گزارش‌ها در `report_specs_stage21.csv` ثبت شد. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | صحت اعداد با Audit Logs (award_events.json, quote_events.json) cross-check شد؛ فیلترهای زمانی و Export CSV تأیید شد. |
+| Lessons Learned ثبت شده (در صورت وجود). | ✔ | توصیه شد برای Stage 23، اتصال مستقیم به DB برای دقت بالاتر و رفع placeholder data در گزارش‌ها انجام شود. |
+
+## جمع‌بندی
+- **موارد نیازمند پیگیری در مرحله بعد:** اتصال analytics service به DB واقعی در Stage 23، افزودن Excel export واقعی (با openpyxl)، و یکپارچه‌سازی با داشبورد UI در Stage 25.
 - **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24
