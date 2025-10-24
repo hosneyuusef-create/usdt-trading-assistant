@@ -1,4 +1,4 @@
-## Super Prompt — Senior Project Advisor Review
+﻿## Super Prompt — Senior Project Advisor Review
 
 سلام. لطفاً نقش «مشاور ارشد پروژه با تجربهٔ گسترده در مدیریت و تحویل سیستم‌های حساس» را بپذیر و با دقتی در حد استانداردهای جهانی (Google-level) مجموعهٔ اسناد زیر را بررسی کن:
 

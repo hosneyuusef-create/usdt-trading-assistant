@@ -1,0 +1,79 @@
+%PDF-1.4
+1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj
+2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj
+3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>endobj
+4 0 obj<< /Length 1183 >>stream
+BT
+/F1 11 Tf
+72 800 Td
+(USDT Auction System - C4 Component Diagram) Tj
+0 -18 Td
+72 782 Td
+(Focus: Core API Services) Tj
+0 -18 Td
+72 764 Td
+(Components:) Tj
+0 -18 Td
+72 746 Td
+( - RFQController / QuotesController) Tj
+0 -18 Td
+72 728 Td
+( - AwardEngine Service) Tj
+0 -18 Td
+72 710 Td
+( - SettlementController & EvidenceAdapter) Tj
+0 -18 Td
+72 692 Td
+( - DisputeController) Tj
+0 -18 Td
+72 674 Td
+( - NotificationPublisher) Tj
+0 -18 Td
+72 656 Td
+( - Repositories \\(RFQRepo, QuoteRepo, SettlementRepo, DisputeRepo\\)) Tj
+0 -18 Td
+72 638 Td
+(External Interfaces:) Tj
+0 -18 Td
+72 620 Td
+( - Postgres via SQLAlchemy) Tj
+0 -18 Td
+72 602 Td
+( - RabbitMQ Publisher) Tj
+0 -18 Td
+72 584 Td
+( - TelemetryClient \\(structlog\\)) Tj
+0 -18 Td
+72 566 Td
+(Flows:) Tj
+0 -18 Td
+72 548 Td
+( 1\\) RFQController -> RFQService -> RFQRepo) Tj
+0 -18 Td
+72 530 Td
+( 2\\) QuoteController -> AwardEngine -> NotificationPublisher) Tj
+0 -18 Td
+72 512 Td
+( 3\\) SettlementController -> EvidenceAdapter -> SettlementRepo) Tj
+0 -18 Td
+72 494 Td
+( 4\\) DisputeController -> DisputeService -> NotificationPublisher) Tj
+0 -18 Td
+72 476 Td
+(Security: Pre-award masking, audit logging, Trace-ID propagation) Tj
+0 -18 Td
+ET
+endstream endobj
+5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000056 00000 n 
+0000000111 00000 n 
+0000000235 00000 n 
+0000001468 00000 n 
+trailer<< /Size 6 /Root 1 0 R >>
+startxref
+1536
+%%EOF

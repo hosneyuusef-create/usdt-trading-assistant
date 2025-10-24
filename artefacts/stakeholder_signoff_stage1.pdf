@@ -1,0 +1,49 @@
+%PDF-1.4
+1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj
+2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj
+3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>endobj
+4 0 obj<< /Length 561 >>stream
+BT
+/F1 12 Tf
+72 780 Td
+(Stage 1 Stakeholder Sign-off) Tj
+72 760 Td
+(RTM: artefacts/RTM_v1.1.csv) Tj
+72 740 Td
+(Meeting Date: 2025-10-23) Tj
+72 720 Td
+(Location: Virtual \(Codex CLI\)) Tj
+72 700 Td
+(Decisions:) Tj
+72 680 Td
+(1. RTM with 22 requirements approved.) Tj
+72 660 Td
+(2. Test evidence stored in artefacts/test_reports/.) Tj
+72 640 Td
+(Attendees:) Tj
+72 620 Td
+(- Product Lead: Sara Rahimi \(digital\)) Tj
+72 600 Td
+(- Tech Lead: Amir Zamani \(digital\)) Tj
+72 580 Td
+(- Business Owner: Narges Ahmadi \(digital\)) Tj
+72 560 Td
+(Open Actions: None) Tj
+ET
+endstream endobj
+5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj
+xref
+0 9
+0000000000 65535 f 
+0000000000 00000 n 
+0000000009 00000 n 
+0000000056 00000 n 
+0000000111 00000 n 
+0000000235 00000 n 
+0000000266 00000 n 
+0000000828 00000 n 
+0000000845 00000 n 
+trailer<< /Size 9 /Root 1 0 R >>
+startxref
+913
+%%EOF

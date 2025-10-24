@@ -1,0 +1,121 @@
+%PDF-1.4
+1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj
+2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj
+3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>endobj
+4 0 obj<< /Length 1938 >>stream
+BT
+/F1 11 Tf
+72 800 Td
+(USDT Auction Workflow Statecharts) Tj
+0 -18 Td
+72 782 Td
+(Stage: M07 | Version: v1.0 | Date: 2025-10-23) Tj
+0 -18 Td
+72 764 Td
+() Tj
+0 -18 Td
+72 746 Td
+(Order Lifecycle \(RFQ\)) Tj
+0 -18 Td
+72 728 Td
+(  Draft -> Open -> \(Awarded | Cancelled | Expired\)) Tj
+0 -18 Td
+72 710 Td
+(  Failure: No Quote -> manual cancel, triggers NotificationEvent with SLA warning) Tj
+0 -18 Td
+72 692 Td
+() Tj
+0 -18 Td
+72 674 Td
+(Award & Partial-Fill) Tj
+0 -18 Td
+72 656 Td
+(  Awarded -> PartialFillPending -> \(Satisfied | Reallocated | Disputed\)) Tj
+0 -18 Td
+72 638 Td
+(  Transitions:) Tj
+0 -18 Td
+72 620 Td
+(   - ProviderReject => Reallocated \(next quote slice\)) Tj
+0 -18 Td
+72 602 Td
+(   - SLA Breach => Disputed) Tj
+0 -18 Td
+72 584 Td
+() Tj
+0 -18 Td
+72 566 Td
+(Settlement State Machine) Tj
+0 -18 Td
+72 548 Td
+(  Pending -> InProgress -> \(Settled | Partially_Disputed | Fully_Disputed | Expired\)) Tj
+0 -18 Td
+72 530 Td
+(  Events:) Tj
+0 -18 Td
+72 512 Td
+(   - EvidenceAccepted => Partial leg Settled) Tj
+0 -18 Td
+72 494 Td
+(   - EvidenceMissing + SLA breach => Partially_Disputed) Tj
+0 -18 Td
+72 476 Td
+(   - Multiple legs failed => Fully_Disputed) Tj
+0 -18 Td
+72 458 Td
+(   - AdminDecision close => Settled/Rejected) Tj
+0 -18 Td
+72 440 Td
+() Tj
+0 -18 Td
+72 422 Td
+(Dispute Handling) Tj
+0 -18 Td
+72 404 Td
+(  Open -> UnderReview -> \(Resolved | EscalatedToAdmin | Reopened\)) Tj
+0 -18 Td
+72 386 Td
+(  Escalation path on repeat breach to Ops admin queue) Tj
+0 -18 Td
+72 368 Td
+() Tj
+0 -18 Td
+72 350 Td
+(Notification & SLA) Tj
+0 -18 Td
+72 332 Td
+(  Queue -> Sent -> \(Delivered | Retry | Failed\)) Tj
+0 -18 Td
+72 314 Td
+(  Retry limit 3 -> escalate to Admin) Tj
+0 -18 Td
+72 296 Td
+() Tj
+0 -18 Td
+72 278 Td
+(Guards & Policies) Tj
+0 -18 Td
+72 260 Td
+(  - Pre-award data masked) Tj
+0 -18 Td
+72 242 Td
+(  - Idempotent webhook updates feed transitions) Tj
+0 -18 Td
+72 224 Td
+(  - Config Version controls SLA thresholds) Tj
+0 -18 Td
+ET
+endstream endobj
+5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000056 00000 n 
+0000000111 00000 n 
+0000000235 00000 n 
+0000002223 00000 n 
+trailer<< /Size 6 /Root 1 0 R >>
+startxref
+2291
+%%EOF

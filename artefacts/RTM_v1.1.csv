@@ -1,11 +1,23 @@
-Requirement-ID,Description,MoSCoW,Owner,Status,Design Stage,Implementation Artefact,Test Reference,Last Updated,Notes
-REQ-001,End-to-end USDT purchase flow,Must,Product Lead,Answered,M13-M16,src/backend/rfq; src/backend/settlement,M24-E2E-1,2025-10-22,
-REQ-006,End-to-end USDT sell flow,Must,Product Lead,Answered,M13-M16,src/backend/rfq; src/backend/settlement,M24-E2E-2,2025-10-22,
-REQ-010,Automatic winner selection by effective price,Must,Tech Lead,Answered,M15,src/backend/award_engine,M15-E2E-1,2025-10-22,
-REQ-012,Pre-award confidentiality,Must,Security Lead,Answered,M3;M6;M14,artefacts/Workflow_Statecharts.pdf; api/telegram_webhook.yaml,M14-E2E-1,2025-10-22,
-REQ-016,Two-step settlement with receipt upload,Must,Ops Lead,Answered,M16,src/backend/settlement; artefacts/Evidence_Spec.md,M16-E2E-1;M16-E2E-2;M16-E2E-3,2025-10-22,
-REQ-017,Transparent user policies,Must,Product Lead,Answered,M7;M12;M22,artefacts/message_templates/; artefacts/Config_Versioning.md,Manual QA regression,2025-10-22,
-REQ-018,Dispute handling and admin decision,Should,Ops Lead,Answered,M18,src/backend/dispute,M18-E2E-1;M18-E2E-3,2025-10-22,
-REQ-019,Native deployment constraint,Must,DevOps Lead,Answered,M8;M25,scripts/setup/; artefacts/Prod_Deployment.md,M25-E2E-1,2025-10-22,
-REQ-NC-001,Non-custodial evidence handling,Must,Ops Lead,Answered,M6;M16;M18,api/settlement_api.yaml; artefacts/Evidence_Spec.md,M16-E2E-3;M18-E2E-4,2025-10-22,
-REQ-NC-002,Auditable evidence store,Must,Ops Lead,Answered,M16;M18,artefacts/Evidence_Spec.md; src/backend/dispute,M18-E2E-1,2025-10-22,
+﻿Requirement-ID,Description,MoSCoW,Owner,Status,Design Stage,Implementation Artefact,Test Reference,Last Updated,Notes
+M01-REQ-001,پشتیبانی از جریان کامل خرید USDT طبق دَستور مرحله ۵,Must,Product Lead,Answered,M13-M16,src/backend/rfq; src/backend/settlement,M24-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 5
+M01-REQ-002,پشتیبانی از جریان فروش USDT با ترتیب تسویه قابل‌پیکربندی,Must,Product Lead,Answered,M13-M16,src/backend/rfq; src/backend/settlement,M24-E2E-2,2025-10-23,ارجاع: dastoor.txt بخش 6
+M01-REQ-003,سیاست وریفای مشتری و سقف معامله بر اساس سطح (Basic/Advanced/Premium),Must,Ops Lead,Answered,M10;M20,src/backend/customer; artefacts/Verification_Policies.json,M10-E2E-1;M20-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 3
+M01-REQ-004,مدیریت پرووایدر با احراز هویت، وثیقه و امتیاز حداقلی,Must,Ops Lead,Answered,M11;M20,src/backend/provider; artefacts/Provider_Eligibility.md,M11-E2E-1;M20-E2E-2,2025-10-23,ارجاع: dastoor.txt بخش 3
+M01-REQ-005,تعریف RFQ با شبکه‌های مجاز و شرایط خاص (سقف قیمت، Split),Must,Product Lead,Answered,M13,src/backend/rfq; artefacts/rfq_special_conditions.schema.json,M13-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 4
+M01-REQ-006,ارسال Quote با قیمت واحد، ظرفیت و کارمزد شبکه,Must,Tech Lead,Answered,M14,src/backend/quote,M14-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 4
+M01-REQ-007,انتخاب برنده دستی و خودکار با معیار قیمت مؤثر و تساوی,Must,Product Lead,Answered,M15,src/backend/award_engine,M15-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 8
+M01-REQ-008,ثبت لاگ کامل رویداد Award شامل actor، زمان و دلیل,Must,Tech Lead,Answered,M15;M23,src/backend/award_engine; src/backend/audit,M15-E2E-2;M23-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 8 و 11
+M01-REQ-009,حفظ محرمانگی اطلاعات طرفین تا پیش از Award,Must,Security Lead,Answered,M7;M14,artefacts/Workflow_Statecharts.pdf; src/backend/notification,M14-E2E-2,2025-10-23,ارجاع: dastoor.txt بخش 9
+M01-REQ-010,تسویه دو مرحله‌ای با کنترل SLA و محاسبه مابه‌التفاوت,Must,Ops Lead,Answered,M16,src/backend/settlement; artefacts/settlement_sla.md,M16-E2E-1;M16-E2E-2,2025-10-23,ارجاع: dastoor.txt بخش 10
+M01-REQ-011,رسیدگی به اختلاف با دریافت مدارک در ۳۰ دقیقه و رأی حداکثر ۴ ساعت,Must,Ops Lead,Pending,TBD,-,-,2025-10-23,ارجاع: dastoor.txt بخش 11 (Deferred until Stage 18 is implemented)
+M01-REQ-012,اعلان‌ها با دیسکلایمر Non-custodial و اطلاعات کلیدی,Must,Product Lead,Answered,M19,artefacts/message_templates/,M19-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 12
+M01-REQ-013,کنترل نسخه پیام‌ها و اعلان‌ها و امکان بازگشت,Must,Product Lead,Answered,M19;M22,artefacts/message_templates/; artefacts/Config_Versioning.md,M19-E2E-3;M22-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 12 و 15
+M01-REQ-014,امتیازدهی مشتری و پرووایدر با محدودیت دسترسی بر اساس امتیاز,Must,Product Lead,Answered,M20,src/backend/scoring,M20-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 13
+M01-REQ-015,گزارش‌های ادمین و تلمتری‌های کلیدی برای مانیتورینگ,Must,Tech Lead,Answered,M21;M23,artefacts/Telemetry_Config.json; src/backend/analytics,M21-E2E-1;M23-E2E-2,2025-10-23,ارجاع: dastoor.txt بخش 14
+M01-REQ-016,تنظیمات قابل تغییر نسخه‌دار با امکان rollback,Must,Tech Lead,Answered,M22,artefacts/Config_Versioning.md; src/backend/config,M22-E2E-2,2025-10-23,ارجاع: dastoor.txt بخش 15
+M01-REQ-017,مدیریت وضعیت‌های سفارش و Partial-Fill با Aggregate وضعیت,Must,Product Lead,Answered,M7;M17,artefacts/Workflow_Statecharts.pdf; src/backend/order,M17-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 7 و 16
+M01-REQ-018,انتشار قوانین SLA و سیاست‌های شفاف برای کاربران,Should,Product Lead,Answered,M19,artefacts/message_templates/; docs/policy.md,M19-E2E-4,2025-10-23,ارجاع: dastoor.txt بخش 17
+M01-REQ-019,رعایت محدوده MVP: یک شبکه، انتخاب خودکار ساده، تسویه ثابت,Must,Product Lead,Answered,M24,artefacts/Training_Kit.zip; tests/e2e,M24-E2E-4,2025-10-23,ارجاع: dastoor.txt بخش 18
+M01-REQ-020,اجرای Native روی Windows و منع Docker,Must,DevOps Lead,Answered,M8;M25,scripts/setup/zero_to_dev.ps1; artefacts/Prod_Deployment.md,M8-E2E-1;M25-E2E-1,2025-10-23,ارجاع: dastoor.txt بخش 19
+M01-REQ-021,استفاده از Git با شاخه‌های feature و تگ baseline در هر مرحله,Must,DevOps Lead,Answered,M8;M25,docs/git_setup_guide.md,M8-E2E-5,2025-10-23,ارجاع: dastoor.txt بخش 19 و global_playbook.md بخش 2
+M01-REQ-022,تمام اعلان‌ها و لاگ‌ها باید دارای Trace ID ممیزی‌پذیر باشند,Must,Tech Lead,Answered,M19;M23,src/backend/notification; src/backend/audit,M23-E2E-3,2025-10-23,ارجاع: dastoor.txt بخش 9، 11 و 12
