@@ -35,6 +35,7 @@ RBAC_POLICY: Dict[str, Set[str]] = {
         "config:view",
         "config:update",
         "config:rollback",
+        "audit:read",
         "rbac:read",
     },
     "operations": {
@@ -56,6 +57,7 @@ RBAC_POLICY: Dict[str, Set[str]] = {
         "partial_fill:cancel",
         "partial_fill:view",
         "config:view",
+        "audit:read",
         "rbac:read",
     },
     "compliance": {
@@ -65,6 +67,7 @@ RBAC_POLICY: Dict[str, Set[str]] = {
         "award:view",
         "settlement:view",
         "partial_fill:view",
+        "audit:read",
         "rbac:read",
     },
     "customer": {
@@ -126,6 +129,7 @@ ACTION_DESCRIPTIONS: Dict[str, str] = {
     "config:view": "View current system configuration and history.",
     "config:update": "Update system configuration (creates new version).",
     "config:rollback": "Rollback configuration to a previous version.",
+    "audit:read": "Query audit trail events and replay transaction scenarios for investigation and compliance.",
     "rbac:read": "Read RBAC matrix and audit entries.",
 }
 

@@ -433,3 +433,25 @@
 ## جمع‌بندی
 - **موارد نیازمند پیگیری در مرحله بعد:** migration تنظیمات به PostgreSQL در Stage 23، توسعه UI داشبورد مدیریت تنظیمات در Stage 25، اضافه کردن approval workflow برای تغییرات حساس.
 - **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24
+
+---
+
+## اطلاعات مرحله
+- **Stage ID / Name:** M23 / لاگینگ و Audit Trail
+- **تاریخ شروع:** 2025-10-24
+- **تاریخ پایان:** 2025-10-24
+- **مسئول مرحله:** Codex Agent (به نمایندگی از تیم پروژه)
+
+## چک‌لیست خروجی‌ها
+| مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
+|------|--------------|-------------------------|
+| خروجی‌های ملموس مرحله مطابق `marahel.txt` تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | `src/backend/audit/` (router, service, schemas, __init__), `artefacts/event_schema_spec.json`, `artefacts/logging_strategy.md`. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | `artefacts/test_reports/M23_audit_tests.md`, آزمون‌های `tests/test_audit.py` (8/8 PASSED in 1.64s). |
+| Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | فرض: JSON Lines format برای append-only logging، daily rotation برای log files، 90-day retention policy. |
+| تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | RBAC policy به‌روزرسانی (audit:read for admin/operations/compliance)، audit router به `core/app.py` اضافه شد، unified event schema با 19 event types، trace ID linking strategy، SHA-256 hash verification. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | بازسازی سناریوهای خرید و اختلاف از logs تأیید شد (M23-E2E-2)، immutability با hash verification تأیید شد (M23-E2E-3)، telemetry integration با statistics endpoint تست شد (M23-E2E-4)، PII minimization رعایت شد (M23-E2E-3b). |
+| Lessons Learned ثبت شده (در صورت وجود). | ✔ | یادگیری: استفاده از mode='json' در model_dump() برای serialize صحیح enums در Pydantic، JSON Lines format برای streaming و rotation، trace ID strategy برای linking events در RFQ lifecycle. |
+
+## جمع‌بندی
+- **موارد نیازمند پیگیری در مرحله بعد:** یکپارچه‌سازی با Telemetry Dashboard در Stage 24 برای نمایش p95 notification latency و failure rate، migration به PostgreSQL برای scalability در Stage 25، افزودن event retention policy automation.
+- **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24

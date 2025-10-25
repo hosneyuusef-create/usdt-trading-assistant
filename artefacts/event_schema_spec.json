@@ -1,0 +1,277 @@
+{
+  "version": "M23-2025-10-24",
+  "description": "Unified Event Schema for Audit Trail and Event Sourcing - Stage 23",
+  "schema": {
+    "base_event": {
+      "required_fields": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event (immutable)",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "rfq_created",
+            "rfq_cancelled",
+            "quote_submitted",
+            "quote_rejected",
+            "award_selected_auto",
+            "award_selected_manual",
+            "settlement_started",
+            "settlement_fiat_submitted",
+            "settlement_crypto_submitted",
+            "settlement_completed",
+            "settlement_failed",
+            "dispute_opened",
+            "dispute_evidence_submitted",
+            "dispute_resolved",
+            "config_updated",
+            "config_rolled_back",
+            "provider_registered",
+            "provider_score_updated",
+            "access_granted",
+            "access_denied"
+          ],
+          "description": "Type of business event",
+          "example": "award_selected_auto"
+        },
+        "actor_id": {
+          "type": "string",
+          "description": "ID of the user/system that triggered this event",
+          "example": "telegram_id:123456 or system:auto_engine"
+        },
+        "actor_role": {
+          "type": "string",
+          "enum": ["customer", "provider", "admin", "operations", "compliance", "system"],
+          "description": "Role of the actor",
+          "example": "admin"
+        },
+        "trace_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Trace ID linking all events in a single transaction/RFQ lifecycle",
+          "example": "7c3a4f21-1234-5678-9abc-def012345678"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp (UTC)",
+          "example": "2025-10-24T12:34:56.123456+00:00"
+        },
+        "event_hash": {
+          "type": "string",
+          "description": "SHA-256 hash of event content for immutability verification",
+          "example": "a1b2c3d4e5f6..."
+        }
+      },
+      "optional_fields": {
+        "previous_status": {
+          "type": "string",
+          "description": "Previous state before this event (for state transitions)",
+          "example": "open"
+        },
+        "new_status": {
+          "type": "string",
+          "description": "New state after this event",
+          "example": "awarded"
+        },
+        "decision_reason": {
+          "type": "string",
+          "description": "Human-readable reason for decision/action",
+          "example": "Auto-selection based on lowest effective price"
+        },
+        "evidence_links": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Links to supporting documents (receipts, TxIDs, screenshots)",
+          "example": ["dispute_evidence_abc123.pdf", "tx_hash:0x1234..."]
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Event-specific additional data",
+          "example": {
+            "rfq_id": "uuid",
+            "quote_id": "uuid",
+            "amount": 1000000.0
+          }
+        }
+      }
+    },
+    "event_types": {
+      "rfq_created": {
+        "description": "New RFQ created by customer",
+        "required_metadata": ["rfq_id", "rfq_type", "amount", "network", "deadline"],
+        "example_metadata": {
+          "rfq_id": "3baefcc2-e715-4566-8468-63b88cea42aa",
+          "rfq_type": "buy",
+          "amount": 100.0,
+          "network": "TRC20",
+          "deadline": "2025-10-24T13:00:00+00:00"
+        }
+      },
+      "quote_submitted": {
+        "description": "Provider submits a quote",
+        "required_metadata": ["quote_id", "rfq_id", "unit_price", "capacity"],
+        "example_metadata": {
+          "quote_id": "743c78ad-c792-4291-a0e1-8f9f481ab1eb",
+          "rfq_id": "3baefcc2-e715-4566-8468-63b88cea42aa",
+          "unit_price": 82400.0,
+          "capacity": 100.0
+        }
+      },
+      "award_selected_auto": {
+        "description": "Award automatically selected based on effective price",
+        "required_metadata": ["award_id", "rfq_id", "winning_quotes", "tie_break_rule"],
+        "example_metadata": {
+          "award_id": "c47eb5fa-011c-4695-9b9e-ead4f6c4f811",
+          "rfq_id": "3baefcc2-e715-4566-8468-63b88cea42aa",
+          "winning_quotes": ["743c78ad-c792-4291-a0e1-8f9f481ab1eb"],
+          "tie_break_rule": "price_then_submission_time"
+        }
+      },
+      "award_selected_manual": {
+        "description": "Award manually selected by admin",
+        "required_metadata": ["award_id", "rfq_id", "winning_quotes", "override_reason"],
+        "example_metadata": {
+          "award_id": "ed02bd33-2b0b-432b-804f-cad296d6b5ed",
+          "rfq_id": "a0dd86d2-6141-4348-b4a9-c82753c44fc7",
+          "winning_quotes": ["0d1e9b7f-c003-486d-941b-69dfce52e6a8"],
+          "override_reason": "Manual check due to policy violation by top bidder"
+        }
+      },
+      "settlement_started": {
+        "description": "Settlement process started",
+        "required_metadata": ["settlement_id", "award_id", "settlement_order"],
+        "example_metadata": {
+          "settlement_id": "uuid",
+          "award_id": "uuid",
+          "settlement_order": "fiat_first"
+        }
+      },
+      "settlement_fiat_submitted": {
+        "description": "Fiat payment evidence submitted",
+        "required_metadata": ["settlement_id", "submitter_role", "evidence_hash"],
+        "example_metadata": {
+          "settlement_id": "uuid",
+          "submitter_role": "customer",
+          "evidence_hash": "sha256:abc123..."
+        }
+      },
+      "settlement_crypto_submitted": {
+        "description": "Crypto transfer evidence submitted",
+        "required_metadata": ["settlement_id", "submitter_role", "tx_id", "network"],
+        "example_metadata": {
+          "settlement_id": "uuid",
+          "submitter_role": "provider",
+          "tx_id": "0x1234567890abcdef",
+          "network": "TRC20"
+        }
+      },
+      "settlement_completed": {
+        "description": "Settlement completed successfully",
+        "required_metadata": ["settlement_id", "completion_time_minutes"],
+        "previous_status": "pending_crypto",
+        "new_status": "completed"
+      },
+      "dispute_opened": {
+        "description": "Dispute opened due to settlement issue",
+        "required_metadata": ["dispute_id", "settlement_id", "reason", "evidence_deadline"],
+        "example_metadata": {
+          "dispute_id": "uuid",
+          "settlement_id": "uuid",
+          "reason": "Evidence verification failed",
+          "evidence_deadline": "2025-10-24T14:00:00+00:00"
+        }
+      },
+      "dispute_evidence_submitted": {
+        "description": "Party submits evidence for dispute",
+        "required_metadata": ["dispute_id", "party_role", "evidence_type"],
+        "example_metadata": {
+          "dispute_id": "uuid",
+          "party_role": "provider",
+          "evidence_type": "bank_receipt"
+        }
+      },
+      "dispute_resolved": {
+        "description": "Admin resolves dispute with decision",
+        "required_metadata": ["dispute_id", "resolution", "winner_party"],
+        "example_metadata": {
+          "dispute_id": "uuid",
+          "resolution": "favor_provider",
+          "winner_party": "provider"
+        }
+      },
+      "config_updated": {
+        "description": "System configuration updated",
+        "required_metadata": ["config_version", "changed_fields"],
+        "example_metadata": {
+          "config_version": 5,
+          "changed_fields": ["bidding_deadline_minutes", "min_valid_quotes"]
+        }
+      },
+      "provider_score_updated": {
+        "description": "Provider score recalculated",
+        "required_metadata": ["provider_id", "old_score", "new_score", "reason"],
+        "example_metadata": {
+          "provider_id": "telegram:9301",
+          "old_score": 85,
+          "new_score": 78,
+          "reason": "Settlement timeout in RFQ #4821"
+        }
+      },
+      "access_granted": {
+        "description": "RBAC access granted",
+        "required_metadata": ["resource", "action", "granted_role"],
+        "example_metadata": {
+          "resource": "provider",
+          "action": "register",
+          "granted_role": "admin"
+        }
+      },
+      "access_denied": {
+        "description": "RBAC access denied",
+        "required_metadata": ["resource", "action", "attempted_role", "reason"],
+        "example_metadata": {
+          "resource": "config",
+          "action": "update",
+          "attempted_role": "operations",
+          "reason": "insufficient_permissions"
+        }
+      }
+    }
+  },
+  "immutability": {
+    "description": "Events are append-only and immutable. Any correction requires a new compensating event.",
+    "rules": [
+      "Events MUST NOT be deleted or modified after creation",
+      "Event hash validates integrity: SHA-256(event_id + event_type + actor_id + trace_id + created_at + metadata_json)",
+      "Corrections require compensating events (e.g., rfq_cancelled after rfq_created)"
+    ]
+  },
+  "pii_minimization": {
+    "description": "Personally Identifiable Information (PII) minimization strategy",
+    "rules": [
+      "Store telegram_id, NOT phone number or real name",
+      "Mask card numbers: 6037-99**-****-1234",
+      "Hash wallet addresses if full address not needed for audit",
+      "No email addresses in logs unless explicitly required for dispute resolution"
+    ]
+  },
+  "trace_id_strategy": {
+    "description": "Trace ID links all events in a single RFQ/order lifecycle",
+    "rules": [
+      "One trace_id per RFQ from creation to final settlement/dispute resolution",
+      "All related events (quotes, award, settlement, dispute) share the same trace_id",
+      "Enables full audit trail reconstruction: SELECT * FROM events WHERE trace_id = '...' ORDER BY created_at"
+    ]
+  },
+  "storage": {
+    "format": "JSON Lines (one event per line in logs/audit_events.json)",
+    "rotation": "Daily rotation: logs/audit_events_YYYY-MM-DD.json",
+    "retention": "90 days minimum for audit compliance"
+  }
+}
