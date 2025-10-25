@@ -9,7 +9,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from .schemas import AuditEvent, EventType, ActorRole, EventReplayTimeline, EventReplayResponse
+from .schemas import (
+    AuditEvent, EventType, ActorRole, EventReplayTimeline, EventReplayResponse,
+    NotificationMetrics, ThresholdAlert, DashboardResponse
+)
 
 
 # Log file paths
@@ -258,3 +261,155 @@ def get_event_statistics() -> Dict[str, Any]:
         "unique_traces": len(unique_traces),
         "events_by_type": event_types
     }
+
+
+def calculate_notification_metrics() -> NotificationMetrics:
+    """
+    Calculate notification performance metrics for dashboard.
+
+    Returns:
+        NotificationMetrics with latency percentiles and failure rate
+    """
+    if not AUDIT_LOG_FILE.exists():
+        return NotificationMetrics(
+            total_sent=0,
+            total_delivered=0,
+            total_failed=0,
+            failure_rate=0.0,
+            p95_latency_ms=None,
+            p99_latency_ms=None,
+            avg_latency_ms=None
+        )
+
+    # Query all notification events
+    sent_events = query_events(event_type="notification_sent")
+    delivered_events = query_events(event_type="notification_delivered")
+    failed_events = query_events(event_type="notification_failed")
+
+    total_sent = len(sent_events)
+    total_delivered = len(delivered_events)
+    total_failed = len(failed_events)
+
+    # Calculate failure rate
+    failure_rate = total_failed / total_sent if total_sent > 0 else 0.0
+
+    # Calculate latency metrics (time between sent and delivered)
+    latencies_ms = []
+
+    # Create a map of trace_id -> sent event
+    sent_map = {event.trace_id: event for event in sent_events}
+
+    for delivered_event in delivered_events:
+        trace_id = delivered_event.trace_id
+        if trace_id in sent_map:
+            sent_event = sent_map[trace_id]
+            # Calculate latency in milliseconds
+            latency = (delivered_event.created_at - sent_event.created_at).total_seconds() * 1000
+            if latency >= 0:  # Only positive latencies
+                latencies_ms.append(latency)
+
+    # Calculate percentiles if we have latency data
+    p95_latency = None
+    p99_latency = None
+    avg_latency = None
+
+    if latencies_ms:
+        sorted_latencies = sorted(latencies_ms)
+        n = len(sorted_latencies)
+
+        # p95: 95th percentile
+        p95_index = int(n * 0.95)
+        if p95_index < n:
+            p95_latency = sorted_latencies[p95_index]
+
+        # p99: 99th percentile
+        p99_index = int(n * 0.99)
+        if p99_index < n:
+            p99_latency = sorted_latencies[p99_index]
+
+        # Average
+        avg_latency = sum(latencies_ms) / len(latencies_ms)
+
+    return NotificationMetrics(
+        total_sent=total_sent,
+        total_delivered=total_delivered,
+        total_failed=total_failed,
+        failure_rate=failure_rate,
+        p95_latency_ms=p95_latency,
+        p99_latency_ms=p99_latency,
+        avg_latency_ms=avg_latency
+    )
+
+
+def check_threshold_alerts(metrics: NotificationMetrics) -> List[ThresholdAlert]:
+    """
+    Check if metrics violate configured thresholds and generate alerts.
+
+    Args:
+        metrics: Current notification metrics
+
+    Returns:
+        List of threshold violation alerts
+    """
+    alerts = []
+
+    # Thresholds (configurable - in production these would come from config)
+    FAILURE_RATE_WARNING_THRESHOLD = 0.05  # 5%
+    FAILURE_RATE_CRITICAL_THRESHOLD = 0.10  # 10%
+    P95_LATENCY_WARNING_THRESHOLD = 2000  # 2 seconds
+    P95_LATENCY_CRITICAL_THRESHOLD = 5000  # 5 seconds
+
+    # Check failure rate
+    if metrics.failure_rate >= FAILURE_RATE_CRITICAL_THRESHOLD:
+        alerts.append(ThresholdAlert(
+            metric_name="notification_failure_rate",
+            current_value=metrics.failure_rate,
+            threshold_value=FAILURE_RATE_CRITICAL_THRESHOLD,
+            severity="critical",
+            message=f"CRITICAL: Notification failure rate is {metrics.failure_rate:.2%}, exceeds critical threshold of {FAILURE_RATE_CRITICAL_THRESHOLD:.2%}"
+        ))
+    elif metrics.failure_rate >= FAILURE_RATE_WARNING_THRESHOLD:
+        alerts.append(ThresholdAlert(
+            metric_name="notification_failure_rate",
+            current_value=metrics.failure_rate,
+            threshold_value=FAILURE_RATE_WARNING_THRESHOLD,
+            severity="warning",
+            message=f"WARNING: Notification failure rate is {metrics.failure_rate:.2%}, exceeds warning threshold of {FAILURE_RATE_WARNING_THRESHOLD:.2%}"
+        ))
+
+    # Check p95 latency
+    if metrics.p95_latency_ms is not None:
+        if metrics.p95_latency_ms >= P95_LATENCY_CRITICAL_THRESHOLD:
+            alerts.append(ThresholdAlert(
+                metric_name="notification_p95_latency",
+                current_value=metrics.p95_latency_ms,
+                threshold_value=P95_LATENCY_CRITICAL_THRESHOLD,
+                severity="critical",
+                message=f"CRITICAL: P95 notification latency is {metrics.p95_latency_ms:.0f}ms, exceeds critical threshold of {P95_LATENCY_CRITICAL_THRESHOLD}ms"
+            ))
+        elif metrics.p95_latency_ms >= P95_LATENCY_WARNING_THRESHOLD:
+            alerts.append(ThresholdAlert(
+                metric_name="notification_p95_latency",
+                current_value=metrics.p95_latency_ms,
+                threshold_value=P95_LATENCY_WARNING_THRESHOLD,
+                severity="warning",
+                message=f"WARNING: P95 notification latency is {metrics.p95_latency_ms:.0f}ms, exceeds warning threshold of {P95_LATENCY_WARNING_THRESHOLD}ms"
+            ))
+
+    return alerts
+
+
+def get_dashboard_metrics() -> DashboardResponse:
+    """
+    Get complete dashboard metrics with notification performance and alerts.
+
+    Returns:
+        DashboardResponse with metrics and active alerts
+    """
+    metrics = calculate_notification_metrics()
+    alerts = check_threshold_alerts(metrics)
+
+    return DashboardResponse(
+        notification_metrics=metrics,
+        alerts=alerts
+    )

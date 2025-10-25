@@ -55,6 +55,11 @@ class EventType(str, Enum):
     ACCESS_GRANTED = "access_granted"
     ACCESS_DENIED = "access_denied"
 
+    # Notification events
+    NOTIFICATION_SENT = "notification_sent"
+    NOTIFICATION_DELIVERED = "notification_delivered"
+    NOTIFICATION_FAILED = "notification_failed"
+
 
 class AuditEvent(BaseModel):
     """
@@ -99,3 +104,29 @@ class EventReplayResponse(BaseModel):
     trace_id: str
     total_events: int
     timeline: List[EventReplayTimeline]
+
+
+class NotificationMetrics(BaseModel):
+    """Notification performance metrics for dashboard"""
+    total_sent: int = Field(..., description="Total notifications sent")
+    total_delivered: int = Field(..., description="Total notifications delivered")
+    total_failed: int = Field(..., description="Total notifications failed")
+    failure_rate: float = Field(..., description="Failure rate (0.0 to 1.0)", ge=0.0, le=1.0)
+    p95_latency_ms: Optional[float] = Field(None, description="95th percentile latency in milliseconds")
+    p99_latency_ms: Optional[float] = Field(None, description="99th percentile latency in milliseconds")
+    avg_latency_ms: Optional[float] = Field(None, description="Average latency in milliseconds")
+
+
+class ThresholdAlert(BaseModel):
+    """Threshold violation alert"""
+    metric_name: str = Field(..., description="Name of the metric")
+    current_value: float = Field(..., description="Current value of the metric")
+    threshold_value: float = Field(..., description="Configured threshold")
+    severity: str = Field(..., description="Alert severity (warning, critical)")
+    message: str = Field(..., description="Human-readable alert message")
+
+
+class DashboardResponse(BaseModel):
+    """Dashboard response with metrics and alerts"""
+    notification_metrics: NotificationMetrics
+    alerts: List[ThresholdAlert] = Field(default_factory=list, description="Active threshold alerts")

@@ -32,7 +32,10 @@
             "provider_registered",
             "provider_score_updated",
             "access_granted",
-            "access_denied"
+            "access_denied",
+            "notification_sent",
+            "notification_delivered",
+            "notification_failed"
           ],
           "description": "Type of business event",
           "example": "award_selected_auto"

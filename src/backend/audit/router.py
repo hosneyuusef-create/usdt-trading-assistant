@@ -6,8 +6,11 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, Query
 
 from ..security.rbac.dependencies import require_permission
-from .service import query_events, replay_events, get_event_statistics, verify_event_integrity
-from .schemas import AuditEvent, EventReplayResponse
+from .service import (
+    query_events, replay_events, get_event_statistics,
+    verify_event_integrity, get_dashboard_metrics
+)
+from .schemas import AuditEvent, EventReplayResponse, DashboardResponse
 
 router = APIRouter(prefix="/audit", tags=["Audit Trail"])
 
@@ -115,3 +118,47 @@ def verify_integrity(
         "valid": is_valid,
         "message": "Event integrity verified" if is_valid else "Event hash mismatch - possible tampering"
     }
+
+
+@router.get("/dashboard", response_model=DashboardResponse)
+def get_dashboard(
+    _: None = Depends(require_permission("audit:read"))
+):
+    """
+    Get notification performance dashboard with metrics and threshold alerts.
+
+    **Permissions required:** audit:read (admin, operations, compliance)
+
+    Returns:
+    - Notification metrics: p95/p99/avg latency, failure rate
+    - Active alerts: threshold violations (warning, critical)
+
+    **Thresholds:**
+    - Failure rate: warning @ 5%, critical @ 10%
+    - P95 latency: warning @ 2000ms, critical @ 5000ms
+
+    **Example response:**
+    ```json
+    {
+      "notification_metrics": {
+        "total_sent": 1000,
+        "total_delivered": 950,
+        "total_failed": 50,
+        "failure_rate": 0.05,
+        "p95_latency_ms": 1500.5,
+        "p99_latency_ms": 2300.2,
+        "avg_latency_ms": 800.1
+      },
+      "alerts": [
+        {
+          "metric_name": "notification_failure_rate",
+          "current_value": 0.05,
+          "threshold_value": 0.05,
+          "severity": "warning",
+          "message": "WARNING: Notification failure rate is 5.00%, exceeds warning threshold of 5.00%"
+        }
+      ]
+    }
+    ```
+    """
+    return get_dashboard_metrics()
