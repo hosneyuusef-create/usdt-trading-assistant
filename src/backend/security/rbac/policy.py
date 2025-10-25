@@ -17,6 +17,7 @@ RBAC_POLICY: Dict[str, Set[str]] = {
         "quote:view",
         "award:execute",
         "award:view",
+        "award:manual_override",
         "settlement:start",
         "settlement:view",
         "settlement:verify",
@@ -31,6 +32,9 @@ RBAC_POLICY: Dict[str, Set[str]] = {
         "dispute:review",
         "dispute:decide",
         "dispute:escalate",
+        "config:view",
+        "config:update",
+        "config:rollback",
         "rbac:read",
     },
     "operations": {
@@ -51,6 +55,7 @@ RBAC_POLICY: Dict[str, Set[str]] = {
         "partial_fill:reallocate",
         "partial_fill:cancel",
         "partial_fill:view",
+        "config:view",
         "rbac:read",
     },
     "compliance": {
@@ -102,6 +107,7 @@ ACTION_DESCRIPTIONS: Dict[str, str] = {
     "quote:view": "List or audit submitted quotes.",
     "award:execute": "Run award engine and confirm winning quotes.",
     "award:view": "Inspect award outcomes and audit traces.",
+    "award:manual_override": "Manually override award selection for a specific quote.",
     "settlement:start": "Initialise settlement workflow for awarded quotes.",
     "settlement:view": "Review settlement legs and status.",
     "settlement:verify": "Verify submitted settlement evidence or escalate.",
@@ -117,6 +123,9 @@ ACTION_DESCRIPTIONS: Dict[str, str] = {
     "dispute:review": "Start arbitration review process on a dispute.",
     "dispute:decide": "Make arbitration decision and resolve dispute.",
     "dispute:escalate": "Escalate dispute to higher authority.",
+    "config:view": "View current system configuration and history.",
+    "config:update": "Update system configuration (creates new version).",
+    "config:rollback": "Rollback configuration to a previous version.",
     "rbac:read": "Read RBAC matrix and audit entries.",
 }
 

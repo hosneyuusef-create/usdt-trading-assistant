@@ -411,3 +411,25 @@
 ## جمع‌بندی
 - **موارد نیازمند پیگیری در مرحله بعد:** اتصال analytics service به DB واقعی در Stage 23، افزودن Excel export واقعی (با openpyxl)، و یکپارچه‌سازی با داشبورد UI در Stage 25.
 - **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24
+
+---
+
+## اطلاعات مرحله
+- **Stage ID / Name:** M22 / تنظیمات قابل تغییر (Configuration UI/API)
+- **تاریخ شروع:** 2025-10-24
+- **تاریخ پایان:** 2025-10-24
+- **مسئول مرحله:** Codex Agent (به نمایندگی از تیم پروژه)
+
+## چک‌لیست خروجی‌ها
+| مورد | وضعیت (✔/✖) | توضیحات / لینک Artefact |
+|------|--------------|-------------------------|
+| خروجی‌های ملموس مرحله مطابق `marahel.txt` تولید و در مسیر مشخص ذخیره شده‌اند. | ✔ | `src/backend/config_ui/` (router, service, schemas, __init__), `scripts/config_rollback.ps1`, `artefacts/Config_Versioning.md`. |
+| شواهد تست‌ها (واحد/یکپارچه/E2E/Bench) به همراه نتایج در مسیر مشخص قرار دارد. | ✔ | `artefacts/test_reports/M22_config_tests.md`, آزمون‌های `tests/test_config_ui.py` (8/8 PASSED in 1.67s). |
+| Assumptions & Open Questions این مرحله به‌روزرسانی شده و آیتم Open ندارد. | ✔ | هیچ فرض جدیدی تعریف نشد؛ file-based storage و hot-reload در Artefact مستند شد. |
+| تغییرات/تصمیمات ثبت شده (Commit، ADR، گزارش) با تاریخ و مسئول نگهداری شده‌اند. | ✔ | RBAC policy به‌روزرسانی (config:view/update/rollback)، config router به `core/app.py` اضافه شد، رویدادهای config در `logs/config_events.json` ثبت می‌شوند. |
+| Cross-check خروجی با معیارهای پذیرش انجام و عدم‌انطباق‌ها رفع شده‌اند. | ✔ | تغییرات بدون redeploy اعمال شد، rollback via PowerShell موفق، history کامل ثبت، audit trail تأیید شد. |
+| Lessons Learned ثبت شده (در صورت وجود). | ✔ | توصیه شد برای Stage 23، migration به PostgreSQL برای scalability و افزودن Excel export (openpyxl) برای گزارش تاریخچه تنظیمات. |
+
+## جمع‌بندی
+- **موارد نیازمند پیگیری در مرحله بعد:** migration تنظیمات به PostgreSQL در Stage 23، توسعه UI داشبورد مدیریت تنظیمات در Stage 25، اضافه کردن approval workflow برای تغییرات حساس.
+- **امضا / تأیید مسئول:** Codex Agent تاریخ: 2025-10-24

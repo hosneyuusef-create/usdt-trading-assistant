@@ -83,3 +83,26 @@ def require_roles(*roles: str, action: str, resource: str = "api"):
         return {"role": role, "user_id": user_id}
 
     return dependency
+
+
+def require_permission(action: str, resource: str = "config"):
+    """
+    FastAPI dependency enforcing permission-based RBAC authorization.
+
+    Parameters
+    ----------
+    action:
+        Action name matching RBAC_POLICY (e.g., "config:view", "config:update").
+    resource:
+        Logical resource identifier for audit logging.
+    """
+    # Find roles that have this permission
+    allowed_roles = []
+    for role, permissions in RBAC_POLICY.items():
+        if action in permissions:
+            allowed_roles.append(role)
+
+    if not allowed_roles:
+        raise ValueError(f"No roles have permission for action: {action}")
+
+    return require_roles(*allowed_roles, action=action, resource=resource)

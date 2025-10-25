@@ -19,6 +19,7 @@ from ..partial_fill import router as partial_fill_router
 from ..scoring import router as scoring_router
 from ..dispute.router import router as dispute_router
 from ..analytics import router as analytics_router
+from ..config_ui import router as config_router
 
 TRACE_HEADER = "X-Trace-ID"
 
@@ -66,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(scoring_router)
     app.include_router(dispute_router)
     app.include_router(analytics_router)
+    app.include_router(config_router)
     return app
 
 
