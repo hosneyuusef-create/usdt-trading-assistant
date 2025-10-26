@@ -1,4 +1,4 @@
-## سند مرجع الزامات و دستور اجرای پروژه (نسخه 2025-10-22)
+## سند مرجع الزامات و دستور اجرای پروژه (نسخه 2025-10-25)
 
 این سند تنها مرجع «چه چیزی باید ساخته شود» است و با `marahel.txt` و `global_playbook.md` همسو تدوین شده است. کلیهٔ خروجی‌ها، تست‌ها و تحویل‌ها باید به الزامات زیر پاسخ دهند. هر تغییر در این سند باید در RTM ثبت و به نسخهٔ جدیدی از این سند منتهی شود.
 
@@ -109,6 +109,69 @@
 - اجرا باید Native روی Windows Server 2019+، بدون Docker.
 - استفاده از Git و شاخه‌های مجزا الزامی است؛ تگ baseline پس از هر مرحله در `docs/change_control_and_revert.md` تعریف شده است.
 - تلمتری و Logs باید ساختاریافته و ممیزی‌پذیر باشند.
+
+
+### 20) Telegram Bot - رابط کاربری و تجربه کاربری
+- تمامی تعاملات سامانه باید از طریق Telegram Bot قابل انجام باشند (ثبت‌نام، ایجاد RFQ، ارسال Quote، انتخاب برنده، تسویه، اختلاف).
+- رابط کاربری باید شامل Inline Keyboards برای انتخاب‌های ساده و Custom Keyboards برای ورودی‌های متنی باشد.
+- User Flows باید واضح و intuitive باشند؛ کاربر در هر مرحله باید بداند گام بعدی چیست و چگونه به مرحله قبل بازگردد.
+- پیام‌های راهنما و کمکی باید در هر مرحله نمایش داده شوند (inline help).
+- تمامی متن‌ها باید به زبان فارسی و با فونت مناسب نمایش داده شوند.
+- کاربر باید بتواند هر زمان با دستور /cancel عملیات جاری را لغو کند.
+- کاربر باید بتواند با دستور /help راهنمای کامل را مشاهده کند.
+- کاربر باید بتواند با دستور /status وضعیت RFQهای فعال خود را ببیند.
+
+### 21) Telegram Bot - مدیریت Conversation و State
+- تمامی conversations باید با ConversationHandler مدیریت شوند (state machine pattern).
+- State هر conversation باید در PostgreSQL ذخیره شود (persistent state).
+- Bot باید پس از restart یا crash بتواند conversations را از جایی که قطع شده ادامه دهد.
+- Session timeout باید قابل تنظیم باشد (پیش‌فرض 24 ساعت).
+- Expired sessions باید به‌صورت خودکار cleanup شوند.
+- Concurrent sessions برای یک کاربر باید مدیریت شوند (یک user فقط یک conversation فعال).
+- State data باید encrypted ذخیره شود (ممکن است حاوی اطلاعات حساس باشد).
+- State size باید محدود شود (حداکثر 100KB per session).
+
+### 22) Telegram Bot - مدیریت فایل و مدارک
+- کاربران باید بتوانند فایل‌های مختلف (JPEG, PNG, PDF) را بارگذاری کنند.
+- حجم فایل باید محدود شود (حداکثر 10MB per file).
+- فایل‌ها باید با validation بررسی شوند (فرمت، حجم، محتوا).
+- فایل‌ها باید با checksum و metadata ذخیره شوند.
+- Admin باید بتواند فایل‌های مربوط به هر RFQ را مشاهده و دانلود کند.
+- Evidence validator باید قوانین M18 را اعمال کند (رسید بانکی با کدرهگیری، TxID معتبر).
+- فایل‌های آپلود شده باید با encryption در backend ذخیره شوند.
+- Rate limiting برای file upload لازم است (حداکثر 3 فایل در دقیقه).
+
+### 23) Telegram Bot - اعلان‌ها و Real-time Updates
+- تمامی events سامانه باید از طریق Telegram notifications به کاربران اطلاع داده شود.
+- Notification Engine باید تمام event types را پوشش دهد: RFQ created, Quote submitted, Award finalized, Settlement started, Evidence received, Dispute filed, Admin decision.
+- Notifications باید در زمان واقعی ارسال شوند (delay کمتر از 5 ثانیه).
+- Notification delivery باید با retry mechanism مدیریت شود (حداقل 3 تلاش).
+- Failed notifications باید در Dead Letter Queue ذخیره شوند برای manual recovery.
+- Notification templates باید versioned و قابل تغییر توسط ادمین باشند.
+- RabbitMQ برای انتقال events از Backend به Bot استفاده شود.
+- Delivery tracking باید با success/failure logs ثبت شود.
+
+### 24) Telegram Bot - امنیت و محافظت در لایه Bot
+- Bot باید با Webhook به‌جای polling کار کند (امنیت و کارایی بالاتر).
+- Webhook باید با HMAC signature محافظت شود.
+- تمامی credentials باید از Windows Credential Manager خوانده شوند (نه از environment variables یا config files).
+- Bot token باید encrypted نگهداری شود.
+- Input validation باید در لایه Bot انجام شود (قبل از ارسال به Backend).
+- Rate limiting باید برای تمام handlers اعمال شود (جلوگیری از abuse).
+- Telegram user_id باید با user در Backend mapping شود (authentication).
+- تمامی actions باید با audit log ثبت شوند (actor، زمان، action، result).
+
+### 25) Telegram Bot - عملیات و پشتیبانی
+- Bot باید به‌عنوان Windows Service اجرا شود.
+- Service باید در صورت crash به‌صورت خودکار restart شود.
+- Health check endpoint باید برای monitoring فراهم باشد.
+- Logs باید structured و centralized باشند.
+- Log rotation باید پیکربندی شود (حداکثر 100MB per file).
+- Monitoring dashboard باید metrics اصلی را نمایش دهد: uptime، message rate، error rate، latency.
+- Deployment guide و operations runbook باید تکمیل و test شده باشند.
+- Rollback procedure باید تست شده و کار کند.
+- Backup strategy برای conversation state و files باید تعریف شود.
+- Bot باید با least privilege user اجرا شود.
 
 ---
 

@@ -459,3 +459,314 @@ Assumptions & Open Questions: هر تغییری در محیط Production بای�
 
 
 
+مرحله 26: Telegram Bot - طراحی User Flows و Conversation States
+پیش‌نیازها: مراحل 1، 3، 4، 6، 7، 19.
+وابستگی‌ها: مراحل 27، 28، 29، 30، 31، 32، 33، 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/Workflow_Statecharts.pdf` (M7), `artefacts/RTM_v1.1.csv` (M1), `artefacts/message_templates/` (M19), `api/telegram_webhook.yaml` (M6).
+- خروجی: `artefacts/telegram_bot/TG_User_Flows.pdf`, `artefacts/telegram_bot/TG_Conversation_States.xlsx`, `artefacts/telegram_bot/TG_Keyboards_Design.md`, `artefacts/telegram_bot/TG_Message_Mapping.csv`, `artefacts/telegram_bot/TG_Architecture.md`.
+خروجی‌های ملموس:
+- نمودار جریان کاربری (User Flow) برای 15 سناریو: Customer (ثبت‌نام، ایجاد RFQ، مشاهده پیشنهادها، تسویه، اختلاف)، Provider (ثبت‌نام، دریافت RFQ، ارسال Quote، تسویه، پاسخ به اختلاف)، Admin (انتخاب برنده، رسیدگی به اختلاف، مشاهده گزارش، تنظیمات، مدیریت پرووایدر).
+- جدول State Machine برای هر Conversation Handler با States، Transitions، Entry Actions و Exit Actions.
+- طراحی تمام Inline Keyboards با screenshot یا mockup (حداقل 25 keyboard مختلف).
+- نقشه mapping پیام‌ها به message templates موجود در M19.
+- سند معماری Bot شامل 3-Layer Architecture (Bot Interface، Business Logic، Backend Integration).
+معیار پذیرش:
+- تمام 15 user flow با جزئیات کامل مستند شده‌اند.
+- هر conversation handler با state diagram کامل و تمام transitions مشخص است.
+- تمام keyboards با UI mockup و callback_data mapping ثبت شده‌اند.
+- mapping پیام‌ها به templates 100% coverage دارد (هیچ پیامی بدون template نیست).
+- معماری bot با Backend API موجود سازگار است و هیچ تغییری در Backend لازم نیست.
+- بازبینی توسط Product Owner و UX lead انجام شده و تأیید شده است.
+نکات: 
+- Conversation state باید persistent باشد (در PostgreSQL ذخیره شود).
+- Rate limiting تلگرام (30 msg/sec) در طراحی broadcast لحاظ شود.
+- File upload size limit (20MB) در طراحی مستندسازی شود.
+برنامه گام‌به‌گام: استخراج user journeys از workflows موجود، طراحی conversation states، طراحی keyboards، mapping به templates، طراحی معماری، بازبینی با تیم، نهایی‌سازی اسناد.
+تست‌ها: Walkthrough با 3 کاربر واقعی (1 customer، 1 provider، 1 admin) و جمع‌آوری feedback.
+Assumptions & Open Questions: آیا از Telegram Mini Apps استفاده می‌شود یا external browser؟ آیا bot از webhook استفاده می‌کند یا long polling؟ این تصمیمات باید قبل از M27 گرفته شوند.
+
+
+مرحله 27: Telegram Bot - پیاده‌سازی Bot Core و Infrastructure
+پیش‌نیازها: مراحل 2، 6، 8، 9، 26.
+وابستگی‌ها: مراحل 28، 29، 30، 31، 32، 33، 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_Architecture.md` (M26), `artefacts/TechStack_Decisions.md` (M2), `src/backend/` (M9), `requirements.txt`, `artefacts/Secrets_Management.md` (M9).
+- خروجی: `src/telegram_bot/`, `tests/telegram_bot/`, `artefacts/telegram_bot/Bot_Setup_Guide.md`, `artefacts/telegram_bot/Bot_Config_Spec.yaml`.
+خروجی‌های ملموس:
+- ساختار کامل پروژه Bot:
+  src/telegram_bot/
+  ├── __init__.py
+  ├── main.py (entry point)
+  ├── core/ (bot application، config، middleware)
+  ├── handlers/ (conversation handlers - خالی در این مرحله)
+  ├── services/ (message formatter، keyboard builder، file handler)
+  ├── clients/ (backend API client)
+  └── models/ (conversation state models)
+- Backend API Client کامل با تمام endpoints (Customer، Provider، RFQ، Quote، Award، Settlement، Dispute، Scoring، Analytics، Config).
+- Message Formatter با integration به message templates.
+- Keyboard Builder برای تولید dynamic inline keyboards.
+- Configuration management با Windows Credential Manager.
+- Logging و Telemetry با Trace ID.
+- Health check endpoint برای bot.
+معیار پذیرش:
+- Bot بوت می‌شود بدون error و به Backend API متصل می‌شود.
+- `/start` و `/help` commands کار می‌کنند و پاسخ صحیح می‌دهند.
+- Backend API Client برای حداقل 5 endpoint تست شده و کار می‌کند.
+- Message Formatter با حداقل 3 template تست شده و پیام صحیح تولید می‌کند.
+- Secrets از Windows Credential Manager بارگذاری می‌شوند (BOT_TOKEN، BACKEND_URL).
+- Logs ساختاریافته با Trace ID ثبت می‌شوند.
+- Health check `/health` در bot پاسخ می‌دهد و وضعیت Backend را چک می‌کند.
+- تست‌های واحد برای API Client و Message Formatter pass می‌شوند.
+نکات:
+- Bot Token باید در Windows Credential Manager با نام `USDT_BOT_TOKEN` ذخیره شود.
+- Retry mechanism با exponential backoff برای API calls.
+- Circuit breaker pattern برای جلوگیری از cascade failure.
+- همه API calls باید async باشند.
+برنامه گام‌به‌گام: ایجاد ساختار پروژه، پیاده‌سازی Bot core، پیاده‌سازی Backend API client، پیاده‌سازی Message formatter، پیاده‌سازی Keyboard builder، تنظیم Secrets management، پیاده‌سازی Logging، نوشتن تست‌های واحد، تست integration با Backend.
+تست‌ها: M27-E2E-1 (Bot startup و connection به Backend)، M27-E2E-2 (API client برای Customer registration)، M27-E2E-3 (Message formatter با 3 template)، M27-E2E-4 (Secrets loading از Credential Manager).
+Assumptions & Open Questions: آیا bot به RabbitMQ برای notification listening نیاز دارد؟ اگر بله، باید در این مرحله پیاده‌سازی شود یا M30؟
+
+
+مرحله 28: Telegram Bot - پیاده‌سازی Customer Handlers
+پیش‌نیازها: مراحل 10، 13، 16، 26، 27.
+وابستگی‌ها: مراحل 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_User_Flows.pdf` (M26)، `artefacts/telegram_bot/TG_Conversation_States.xlsx` (M26)، `src/telegram_bot/core/` (M27)، `src/backend/customer` (M10)، `src/backend/rfq` (M13)، `src/backend/settlement` (M16).
+- خروجی: `src/telegram_bot/handlers/customer_registration.py`، `src/telegram_bot/handlers/customer_rfq.py`، `src/telegram_bot/handlers/customer_award_view.py`، `src/telegram_bot/handlers/customer_settlement.py`، `src/telegram_bot/handlers/customer_dispute.py`، `tests/telegram_bot/test_customer_handlers.py`، `artefacts/test_reports/M28_customer_handlers_tests.md`.
+خروجی‌های ملموس:
+- Conversation Handler برای ثبت‌نام مشتری (نام کامل، KYC tier، کارت بانکی، آدرس wallet).
+- Conversation Handler برای ایجاد RFQ (نوع معامله، مقدار، شبکه، سقف قیمت، تأیید).
+- Handler برای مشاهده پیشنهادها (لیست quotes با قیمت و ظرفیت).
+- Conversation Handler برای Settlement (آپلود رسید بانکی، تأیید TxID دریافتی).
+- Conversation Handler برای ثبت اختلاف (انتخاب دلیل، آپلود مدارک، ارسال توضیحات).
+- تست‌های واحد و یکپارچگی برای تمام handlers.
+معیار پذیرش:
+- تمام 5 customer flow کامل پیاده‌سازی شده و با Backend API integrate شده‌اند.
+- File upload برای رسید بانکی و مدارک اختلاف کار می‌کند.
+- Validation برای تمام ورودی‌ها (مقدار USDT، شماره کارت، آدرس wallet) انجام می‌شود.
+- Error handling برای تمام failure scenarios (مثلاً: سقف معامله بیش از حد مجاز).
+- تست‌های E2E: M28-E2E-1 (Customer registration → RFQ → Award notification → Settlement → Complete)، M28-E2E-2 (Customer RFQ → No quotes → Extend deadline)، M28-E2E-3 (Customer Settlement → Upload receipt → Dispute)، M28-E2E-4 (Customer tries RFQ above tier limit → Rejected).
+- پوشش تست ≥85% برای customer handlers.
+نکات:
+- Card number باید masked شود در logs (فقط 4 رقم آخر).
+- Wallet address باید با network انتخابی validate شود.
+- RFQ amount باید با tier limit کاربر چک شود.
+- File upload باید با hash verification انجام شود.
+برنامه گام‌به‌گام: پیاده‌سازی registration handler، پیاده‌سازی RFQ handler، پیاده‌سازی award view handler، پیاده‌سازی settlement handler، پیاده‌سازی dispute handler، نوشتن تست‌ها، integration testing با Backend، بازبینی کد.
+تست‌ها: M28-E2E-1..4.
+Assumptions & Open Questions: آیا customer می‌تواند چند RFQ همزمان داشته باشد؟ آیا customer می‌تواند RFQ را قبل از deadline لغو کند؟
+
+مرحله 29: Telegram Bot - پیاده‌سازی Provider Handlers
+پیش‌نیازها: مراحل 11، 14، 15، 16، 26، 27.
+وابستگی‌ها: مراحل 30، 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_User_Flows.pdf` (M26)، `src/telegram_bot/core/` (M27)، `src/backend/provider` (M11)، `src/backend/quote` (M14)، `src/backend/award_engine` (M15).
+- خروجی: `src/telegram_bot/handlers/provider_registration.py`، `src/telegram_bot/handlers/provider_quote.py`، `src/telegram_bot/handlers/provider_award_notification.py`، `src/telegram_bot/handlers/provider_settlement.py`، `src/telegram_bot/handlers/provider_dispute.py`، `tests/telegram_bot/test_provider_handlers.py`، `artefacts/test_reports/M29_provider_handlers_tests.md`.
+خروجی‌های ملموس:
+- Conversation Handler برای ثبت‌نام پرووایدر (نام، اطلاعات تماس، اطلاعات مالی، وثیقه).
+- Conversation Handler برای ارسال Quote (قیمت واحد، ظرفیت، کارمزد شبکه).
+- Handler برای notification برنده شدن (اطلاعات تسویه، مهلت‌ها).
+- Conversation Handler برای Settlement (آپلود TxID، بارگذاری رسید انتقال).
+- Handler برای پاسخ به اختلاف (مشاهده مدارک customer، ارسال پاسخ و مدارک).
+معیار پذیرش:
+- تمام 5 provider flow کامل پیاده‌سازی شده‌اند.
+- Provider notification برای RFQ جدید real-time است (< 5 ثانیه delay).
+- Quote submission با validation قیمت و ظرفیت انجام می‌شود.
+- Quote نمی‌تواند بعد از deadline ارسال شود.
+- TxID validation با format صحیح blockchain.
+- تست‌های E2E: M29-E2E-1 (Provider registration → Receive RFQ → Submit quote → Win → Settlement)، M29-E2E-2 (Provider submits quote after deadline → Rejected)، M29-E2E-3 (Provider با امتیاز پایین → Cannot access large RFQs)، M29-E2E-4 (Provider dispute response with evidence).
+- پوشش تست ≥85% برای provider handlers.
+نکات:
+- RFQ notification باید به پرووایدرهای eligible broadcast شود (با rate limiting).
+- Provider با score < 60 نباید RFQهای بزرگ را ببیند.
+- Quote edit فقط قبل از deadline مجاز است.
+برنامه گام‌به‌گام: پیاده‌سازی registration، پیاده‌سازی quote handler، پیاده‌سازی notification receiver، پیاده‌سازی settlement handler، پیاده‌سازی dispute response، نوشتن تست‌ها، integration testing.
+تست‌ها: M29-E2E-1..4.
+Assumptions & Open Questions: آیا provider می‌تواند quote خود را edit کند؟ آیا provider می‌تواند quote را withdraw کند؟
+
+مرحله 30: Telegram Bot - پیاده‌سازی Admin Handlers و Notification Engine
+پیش‌نیازها: مراحل 15، 18، 19، 21، 22، 26، 27، 28، 29.
+وابستگی‌ها: مراحل 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_User_Flows.pdf` (M26)، `src/telegram_bot/core/` (M27)، `src/backend/award_engine` (M15)، `src/backend/dispute` (M18)، `src/backend/analytics` (M21)، `src/backend/config_ui` (M22)، `artefacts/message_templates/` (M19).
+- خروجی: `src/telegram_bot/handlers/admin_award.py`، `src/telegram_bot/handlers/admin_dispute.py`، `src/telegram_bot/handlers/admin_analytics.py`، `src/telegram_bot/handlers/admin_config.py`، `src/telegram_bot/handlers/admin_provider_mgmt.py`، `src/telegram_bot/services/notification_listener.py`، `src/telegram_bot/services/notification_sender.py`، `tests/telegram_bot/test_admin_handlers.py`، `artefacts/test_reports/M30_admin_notification_tests.md`.
+خروجی‌های ملموس:
+- Handler برای انتخاب برنده (مشاهده لیست RFQها، مشاهده quotes، انتخاب دستی، انتخاب خودکار).
+- Handler برای رسیدگی به اختلاف (مشاهده مدارک طرفین، صدور رأی، ثبت دلیل).
+- Handler برای مشاهده گزارش‌ها (analytics، KPI dashboard، export CSV).
+- Handler برای تغییر تنظیمات (SLA، قیمت‌دهی، شبکه‌های مجاز، message templates).
+- Handler برای مدیریت پرووایدر (تغییر score، suspend، activate).
+- Notification Listener (RabbitMQ consumer) برای دریافت events از Backend.
+- Notification Sender برای ارسال پیام به تلگرام با retry و delivery tracking.
+معیار پذیرش:
+- Admin می‌تواند لیست RFQهای منتظر award را ببیند و برنده را انتخاب کند.
+- Admin می‌تواند اختلافات را مشاهده و رأی صادر کند.
+- Admin می‌تواند گزارش‌ها را مشاهده و export کند.
+- Admin می‌تواند تنظیمات را تغییر دهد (با versioning و rollback).
+- Notification Engine تمام 10+ event type را پوشش می‌دهد.
+- Notifications در زمان واقعی ارسال می‌شوند (< 5 ثانیه delay).
+- Retry mechanism برای failed notifications کار می‌کند.
+- Delivery tracking با success/failure logs ثبت می‌شود.
+- تست‌های E2E: M30-E2E-1 (Admin award selection)، M30-E2E-2 (Admin dispute resolution)، M30-E2E-3 (Admin analytics export)، M30-E2E-4 (Notification delivery for all event types).
+- پوشش تست ≥80% برای admin handlers و notification engine.
+نکات:
+- Admin actions باید audit log داشته باشند.
+- Notification delivery failures باید به admin گزارش شوند.
+- RabbitMQ connection باید با retry و reconnect مدیریت شود.
+برنامه گام‌به‌گام: پیاده‌سازی admin handlers، پیاده‌سازی notification listener، پیاده‌سازی notification sender، integration با RabbitMQ، نوشتن تست‌ها، load testing notification engine.
+تست‌ها: M30-E2E-1..4.
+Assumptions & Open Questions: آیا admin notification‌ها priority بالاتری دارند؟ آیا admin می‌تواند notification history را ببیند؟
+
+مرحله 31: Telegram Bot - File Upload/Download و Evidence Management
+پیش‌نیازها: مراحل 26، 27، 28، 29، 18.
+وابستگی‌ها: مراحل 32، 33، 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/Workflow_Statecharts.pdf` (M7), `api/settlement_api.yaml` (M13), `artefacts/telegram_bot/TG_User_Flows.pdf` (M26).
+- خروجی: `src/telegram_bot/handlers/file_manager.py`, `src/telegram_bot/services/evidence_validator.py`, `artefacts/telegram_bot/File_Handling_Guide.md`, `artefacts/telegram_bot/Evidence_Verification_Rules.xlsx`.
+خروجی‌های ملموس:
+- File Upload Handler: دریافت فایل‌ها (تصاویر رسید بانکی، اسکرین‌شات، مدارک) با validation (حجم، فرمت، محتوا).
+- File Download Handler: ارائه فایل‌های بارگذاری‌شده به ادمین برای بررسی.
+- Evidence Validator: بررسی checksum، تاریخ/زمان، قالب رسید.
+- File Storage Integration: ذخیره فایل‌ها در backend و دریافت file_id.
+- Documentation: راهنمای کاربری برای بارگذاری مدارک و قوانین پذیرش.
+معیار پذیرش:
+- کاربر می‌تواند فایل‌های مختلف (JPEG, PNG, PDF) را بارگذاری کند.
+- حجم فایل محدود شده (max 10MB) و validation انجام می‌شود.
+- فایل‌ها با checksum و metadata ذخیره می‌شوند.
+- Admin می‌تواند فایل‌های مربوط به هر RFQ را مشاهده و دانلود کند.
+- Evidence validator قوانین M18 را اعمال می‌کند (رسید بانکی با کدرهگیری، TxID معتبر).
+- تست‌های E2E: M31-E2E-1 (Upload receipt image)، M31-E2E-2 (Upload invalid file)، M31-E2E-3 (Download evidence as admin)، M31-E2E-4 (Evidence validation rules).
+- پوشش تست ≥85% برای file handling و validation.
+نکات:
+- فایل‌های آپلود شده باید با encryption در backend ذخیره شوند.
+- Rate limiting برای file upload لازم است (3 files/min).
+- فایل‌های بزرگ باید با progress indicator نمایش داده شوند.
+برنامه گام‌به‌گام: پیاده‌سازی file upload handler، پیاده‌سازی file download handler، پیاده‌سازی evidence validator، integration با backend file storage، نوشتن تست‌ها، تهیه documentation.
+تست‌ها: M31-E2E-1..4.
+Assumptions & Open Questions: آیا فایل‌ها در Telegram Server ذخیره می‌شوند یا فقط file_id ذخیره می‌شود؟ حداکثر مدت زمان نگهداری فایل‌ها چقدر است؟
+
+
+مرحله 32: Telegram Bot - State Management و Session Persistence
+پیش‌نیازها: مراحل 26، 27، 2، 5.
+وابستگی‌ها: مراحل 33، 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_Conversation_States.xlsx` (M26), `schema/schema.sql` (M5).
+- خروجی: `src/telegram_bot/persistence/state_manager.py`, `schema/telegram_sessions.sql`, `artefacts/telegram_bot/State_Recovery_Guide.md`, `artefacts/telegram_bot/Session_TTL_Rules.xlsx`.
+خروجی‌های ملموس:
+- PostgreSQL-based Persistence: ذخیره conversation state در `telegram_sessions` table.
+- State Manager: load/save state با TTL و cleanup.
+- Recovery Mechanism: بازیابی state در صورت restart bot.
+- Session Management: مدیریت concurrent sessions، timeout، cleanup.
+- Documentation: راهنمای state management و recovery scenarios.
+معیار پذیرش:
+- تمام conversation states در PostgreSQL ذخیره می‌شوند.
+- Bot پس از restart می‌تواند conversations را ادامه دهد.
+- Sessions با TTL مدیریت می‌شوند (24h default).
+- Expired sessions به‌صورت خودکار cleanup می‌شوند.
+- Concurrent sessions برای یک user به‌درستی مدیریت می‌شوند.
+- تست‌های E2E: M32-E2E-1 (State persistence after bot restart)، M32-E2E-2 (Session timeout)، M32-E2E-3 (Concurrent sessions)، M32-E2E-4 (State recovery after crash).
+- پوشش تست ≥80% برای state management.
+نکات:
+- State data باید encrypted ذخیره شود (حاوی اطلاعات حساس).
+- State cleanup باید با background job انجام شود.
+- State size باید محدود شود (max 100KB per session).
+برنامه گام‌به‌گام: طراحی schema، پیاده‌سازی state manager، پیاده‌سازی recovery mechanism، پیاده‌سازی cleanup job، نوشتن تست‌ها، تهیه documentation.
+تست‌ها: M32-E2E-1..4.
+Assumptions & Open Questions: چه مدت conversations باید نگهداری شوند؟ آیا state versioning نیاز است؟
+
+
+مرحله 33: Telegram Bot - Error Handling و Recovery
+پیش‌نیازها: مراحل 26، 27، 28، 29، 30، 31، 32، 15.
+وابستگی‌ها: مراحل 34، 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_User_Flows.pdf` (M26), `artefacts/Error_Taxonomy.md` (M15).
+- خروجی: `src/telegram_bot/middleware/error_handler.py`, `src/telegram_bot/services/recovery_service.py`, `artefacts/telegram_bot/Error_Handling_Guide.md`, `artefacts/telegram_bot/Recovery_Playbook.md`.
+خروجی‌های ملموس:
+- Error Handler Middleware: catch و log تمام exceptions با structured logging.
+- User-Friendly Error Messages: پیام‌های فارسی و قابل فهم برای کاربران.
+- Recovery Service: retry mechanism برای transient errors، fallback actions.
+- Dead Letter Queue: ذخیره failed messages برای manual review.
+- Error Taxonomy: دسته‌بندی خطاها (Network, Backend API, Telegram API, User Input, State).
+- Documentation: راهنمای troubleshooting و recovery procedures.
+معیار پذیرش:
+- تمام exceptions لاگ می‌شوند با trace_id و context.
+- کاربران پیام خطای واضح دریافت می‌کنند (نه stack trace).
+- Transient errors (network timeout) به‌صورت خودکار retry می‌شوند (max 3 attempts).
+- Failed messages در DLQ ذخیره می‌شوند برای manual recovery.
+- Bot در صورت crash به‌صورت خودکار restart می‌شود (با Windows Service recovery).
+- تست‌های E2E: M33-E2E-1 (Network error recovery)، M33-E2E-2 (Backend API error)، M33-E2E-3 (Telegram API rate limit)، M33-E2E-4 (Invalid user input)، M33-E2E-5 (Bot crash recovery).
+- پوشش تست ≥85% برای error handling.
+نکات:
+- خطاهای حساس (credential errors) نباید به user نمایش داده شوند.
+- Rate limiting errors باید با exponential backoff مدیریت شوند.
+- Critical errors باید به admin اطلاع داده شوند (notification).
+برنامه گام‌به‌گام: پیاده‌سازی error handler middleware، پیاده‌سازی recovery service، پیاده‌سازی DLQ، تهیه error messages فارسی، نوشتن تست‌ها، تهیه documentation.
+تست‌ها: M33-E2E-1..5.
+Assumptions & Open Questions: چه خطاهایی باید به admin اطلاع داده شوند؟ DLQ چه مدت نگهداری شود؟
+
+
+مرحله 34: Telegram Bot - E2E Testing و Quality Assurance
+پیش‌نیازها: مراحل 26، 27، 28، 29، 30، 31، 32، 33، 8.
+وابستگی‌ها: مرحله 35.
+ورودی‌ها / خروجی‌ها:
+- ورودی: `artefacts/telegram_bot/TG_User_Flows.pdf` (M26), `tests/test_*.py` (M8 و مراحل قبل).
+- خروجی: `tests/telegram_bot/test_e2e_*.py`, `artefacts/test_reports/M34_telegram_bot_tests.md`, `artefacts/telegram_bot/Test_Coverage_Report.html`, `artefacts/telegram_bot/QA_Checklist.xlsx`.
+خروجی‌های ملموس:
+- E2E Test Suite: پوشش تمام 15 user flow (M26) با pytest.
+- Integration Tests: تست تمام handlers با mock backend API.
+- Load Tests: تست عملکرد با 100+ concurrent users.
+- Security Tests: تست authentication، authorization، input validation.
+- Test Coverage Report: گزارش پوشش تست ≥85%.
+- QA Checklist: چک‌لیست کامل برای acceptance testing.
+- Documentation: راهنمای اجرای تست‌ها و CI/CD integration.
+معیار پذیرش:
+- تمام 15 user flow با E2E tests پوشش داده شده‌اند.
+- پوشش تست کل پروژه Telegram Bot ≥85%.
+- تمام تست‌ها با موفقیت اجرا می‌شوند (0 failures).
+- Load test نشان می‌دهد bot می‌تواند 100+ concurrent users را handle کند.
+- Security tests تأیید می‌کنند هیچ vulnerability شناخته‌شده‌ای وجود ندارد.
+- QA Checklist به‌طور کامل تکمیل و تأیید شده است.
+- Test reports در `artefacts/test_reports/M34_*.md` ثبت شده‌اند.
+نکات:
+- تست‌ها باید در CI/CD pipeline اجرا شوند.
+- Mock data باید realistic باشد (از production-like scenarios استفاده شود).
+- Performance benchmarks باید با production requirements مقایسه شوند.
+برنامه گام‌به‌گام: طراحی test scenarios، پیاده‌سازی E2E tests، پیاده‌سازی integration tests، پیاده‌سازی load tests، پیاده‌سازی security tests، اجرای تست‌ها، تهیه reports، تکمیل QA checklist.
+تست‌ها: M34-E2E-1 (Customer complete flow)، M34-E2E-2 (Provider complete flow)، M34-E2E-3 (Admin complete flow)، M34-E2E-4 (Dispute flow)، M34-E2E-5 (Partial-fill flow)، M34-E2E-6 (Load test)، M34-E2E-7 (Security test).
+Assumptions & Open Questions: آیا regression tests نیاز است؟ آیا performance benchmarks مشخص هستند؟
+
+
+مرحله 35: Telegram Bot - Production Deployment و Operations
+پیش‌نیازها: مراحل 26، 27، 28، 29، 30، 31، 32، 33، 34، 25.
+وابستگی‌ها: هیچ (آخرین مرحله Telegram Bot).
+ورودی‌ها / خروجی‌ها:
+- ورودی: تمام deliverables M26-M34، `artefacts/Production_Runbook.md` (M25).
+- خروجی: `deployment/telegram_bot/install.ps1`, `deployment/telegram_bot/service.xml`, `artefacts/telegram_bot/Deployment_Guide.md`, `artefacts/telegram_bot/Operations_Runbook.md`, `artefacts/telegram_bot/Monitoring_Dashboard.md`.
+خروجی‌های ملموس:
+- Installation Script: اسکریپت PowerShell برای نصب bot به‌عنوان Windows Service.
+- Service Configuration: تنظیمات Windows Service (auto-restart، logging، credentials).
+- Deployment Guide: راهنمای کامل deployment با checklist.
+- Operations Runbook: دستورالعمل‌های operational (start/stop، backup، rollback، troubleshooting).
+- Monitoring Dashboard: داشبورد مانیتورینگ bot metrics (uptime، message rate، error rate، latency).
+- Health Check Endpoint: endpoint برای monitoring bot health.
+- Log Aggregation: تنظیمات centralized logging.
+معیار پذیرش:
+- Bot به‌عنوان Windows Service نصب و اجرا می‌شود.
+- Service در صورت crash به‌صورت خودکار restart می‌شود.
+- تمام credentials از Windows Credential Manager خوانده می‌شوند.
+- Health check endpoint پاسخ می‌دهد و status bot را نشان می‌دهد.
+- Logs به‌صورت structured و centralized ذخیره می‌شوند.
+- Monitoring dashboard metrics اصلی را نمایش می‌دهد.
+- Deployment guide و operations runbook تکمیل و test شده‌اند.
+- Rollback procedure تست شده و کار می‌کند.
+نکات:
+- Bot باید با least privilege user اجرا شود.
+- Secrets باید encrypted نگهداری شوند.
+- Log rotation باید پیکربندی شود (max 100MB per file).
+- Backup strategy برای conversation state و files تعریف شود.
+برنامه گام‌به‌گام: آماده‌سازی installation script، پیکربندی Windows Service، تهیه deployment guide، تهیه operations runbook، پیاده‌سازی health check، پیکربندی monitoring، استقرار آزمایشی، اجرای rollback test، تحویل نهایی.
+تست‌ها: M35-E2E-1 (Fresh installation)، M35-E2E-2 (Service auto-restart)، M35-E2E-3 (Health check)، M35-E2E-4 (Rollback procedure).
+Assumptions & Open Questions: آیا blue-green deployment نیاز است؟ آیا disaster recovery plan مشخص است؟
+
+
