@@ -1,0 +1,363 @@
+﻿openapi: 3.0.3
+info:
+  title: USDT Auction Platform API
+  version: v1.0.0
+  description: |
+    REST API covering RFQ, Quote, Award, and Settlement flows for the USDT Auction Platform.
+    Data is masked before award and all responses include Trace-ID headers.
+servers:
+  - url: https://api.usdt-auction.local/v1
+    description: Internal staging (Windows Native)
+  - url: https://api.usdt-auction.prod/v1
+    description: Production
+security:
+  - bearerAuth: []
+tags:
+  - name: RFQ
+  - name: Quote
+  - name: Award
+  - name: Settlement
+paths:
+  /rfqs:
+    post:
+      tags: [RFQ]
+      summary: Create RFQ
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RFQCreateRequest'
+      responses:
+        '201':
+          description: RFQ created
+          headers:
+            Trace-ID:
+              schema:
+                type: string
+              description: Correlates logs end-to-end
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RFQ'
+        '400':
+          description: Validation errors
+        '401':
+          description: Authentication required
+    get:
+      tags: [RFQ]
+      summary: List RFQs (masked pre-award)
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [open, awarded, cancelled]
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [buy, sell]
+      responses:
+        '200':
+          description: Paginated RFQ list
+          headers:
+            Trace-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RFQMasked'
+                  nextCursor:
+                    type: string
+        '401':
+          description: Authentication required
+  /rfqs/{rfqId}/quotes:
+    post:
+      tags: [Quote]
+      summary: Submit quote for RFQ
+      parameters:
+        - $ref: '#/components/parameters/RFQId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteCreateRequest'
+      responses:
+        '201':
+          description: Quote created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Quote'
+        '403':
+          description: Provider not eligible
+  /quotes/{quoteId}/award:
+    post:
+      tags: [Award]
+      summary: Award quote (manual override)
+      parameters:
+        - $ref: '#/components/parameters/QuoteId'
+      responses:
+        '200':
+          description: Quote awarded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Award'
+        '409':
+          description: RFQ already fully awarded
+  /settlements/{settlementId}:
+    get:
+      tags: [Settlement]
+      summary: Retrieve settlement state
+      parameters:
+        - $ref: '#/components/parameters/SettlementId'
+      responses:
+        '200':
+          description: Settlement details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settlement'
+    patch:
+      tags: [Settlement]
+      summary: Update settlement leg status
+      parameters:
+        - $ref: '#/components/parameters/SettlementId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SettlementUpdateRequest'
+      responses:
+        '200':
+          description: Settlement updated
+        '409':
+          description: Invalid state transition
+  /settlements/{settlementId}/evidence:
+    post:
+      tags: [Settlement]
+      summary: Submit evidence for settlement leg
+      parameters:
+        - $ref: '#/components/parameters/SettlementId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenceProof'
+      responses:
+        '202':
+          description: Evidence accepted
+        '400':
+          description: Invalid payload
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    RFQId:
+      name: rfqId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    QuoteId:
+      name: quoteId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SettlementId:
+      name: settlementId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    RFQ:
+      type: object
+      properties:
+        rfqId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [buy, sell]
+        network:
+          type: string
+        amount:
+          type: number
+        minFill:
+          type: number
+        status:
+          type: string
+        settlementOrder:
+          type: string
+        expiryAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    RFQCreateRequest:
+      allOf:
+        - $ref: '#/components/schemas/RFQ'
+      required: [type, network, amount, expiryAt]
+    RFQMasked:
+      type: object
+      properties:
+        rfqId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        network:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+        expiryAt:
+          type: string
+          format: date-time
+      description: "Pre-award response excludes counterparties and pricing"
+    Quote:
+      type: object
+      properties:
+        quoteId:
+          type: string
+          format: uuid
+        rfqId:
+          type: string
+          format: uuid
+        providerId:
+          type: string
+          format: uuid
+        unitPrice:
+          type: number
+        capacity:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    QuoteCreateRequest:
+      type: object
+      required: [unitPrice, capacity]
+      properties:
+        unitPrice:
+          type: number
+        capacity:
+          type: number
+        fee:
+          type: number
+    Award:
+      type: object
+      properties:
+        awardId:
+          type: string
+          format: uuid
+        rfqId:
+          type: string
+          format: uuid
+        quoteId:
+          type: string
+          format: uuid
+        selectionMode:
+          type: string
+        awardedAmount:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    Settlement:
+      type: object
+      properties:
+        settlementId:
+          type: string
+          format: uuid
+        awardId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        slaDeadline:
+          type: string
+          format: date-time
+        legs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettlementLeg'
+    SettlementLeg:
+      type: object
+      properties:
+        settlementLegId:
+          type: string
+          format: uuid
+        legType:
+          type: string
+          enum: [fiat, usdt]
+        amount:
+          type: number
+        status:
+          type: string
+        dueAt:
+          type: string
+          format: date-time
+    SettlementUpdateRequest:
+      type: object
+      properties:
+        legId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        txReference:
+          type: string
+        evidence:
+          $ref: '#/components/schemas/EvidenceProof'
+    EvidenceProof:
+      type: object
+      required: [hash, issuer, payer, payee, amounts, txId, network, claimedConfirmations]
+      properties:
+        hash:
+          type: string
+          description: SHA256 hash of the evidence payload
+        issuer:
+          type: string
+        payer:
+          type: string
+        payee:
+          type: string
+        amounts:
+          type: object
+          properties:
+            fiat:
+              type: number
+            usdt:
+              type: number
+        txId:
+          type: string
+        network:
+          type: string
+        claimedConfirmations:
+          type: integer
+        metadata:
+          type: object
+          additionalProperties: true

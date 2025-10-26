@@ -280,8 +280,8 @@ Assumptions & Open Questions: وزن معیارها باید با مرحله 20 
 - ورودی: Award، Evidence Schema، Settlement API.
 - خروجی: `src/backend/settlement`, `artefacts/Evidence_Spec.md`.
 خروجی‌های ملموس:
-- گردش دوگام ریال/USDT با آپلود رسید/TxID، تایمر، مدیریت مابه‌التفاوت.
-- مستند Evidence با فیلدها، نوع داده، حداکثر اندازه (5MB)، مسیر ذخیره، نگهداری 180 روز.
+- گردش دوگام ریال/USDT با آپلود رسید/TxID، تایمر (SLA: 15 دقیقه فاز اول + 15 دقیقه فاز دوم)، مدیریت مابه‌التفاوت.
+- مستند Evidence با فیلدها، نوع داده، حداکثر اندازه (10MB طبق سیاست کسب‌وکار)، مسیر ذخیره، نگهداری 180 روز.
 معیار پذیرش:
 - Escalation خودکار به Dispute در عدم بارگذاری یا رد رسید.
 - مسیر رسید نامعتبر → فرصت بارگذاری مجدد → Dispute ثبت شده است.
@@ -481,7 +481,7 @@ Assumptions & Open Questions: هر تغییری در محیط Production بای�
 نکات: 
 - Conversation state باید persistent باشد (در PostgreSQL ذخیره شود).
 - Rate limiting تلگرام (30 msg/sec) در طراحی broadcast لحاظ شود.
-- File upload size limit (20MB) در طراحی مستندسازی شود.
+- File upload size limit: Telegram حداکثر 20MB را support می‌کند اما سیاست کسب‌وکار 10MB است که باید enforce شود.
 برنامه گام‌به‌گام: استخراج user journeys از workflows موجود، طراحی conversation states، طراحی keyboards، mapping به templates، طراحی معماری، بازبینی با تیم، نهایی‌سازی اسناد.
 تست‌ها: Walkthrough با 3 کاربر واقعی (1 customer، 1 provider، 1 admin) و جمع‌آوری feedback.
 Assumptions & Open Questions: آیا از Telegram Mini Apps استفاده می‌شود یا external browser؟ آیا bot از webhook استفاده می‌کند یا long polling؟ این تصمیمات باید قبل از M27 گرفته شوند.
@@ -606,7 +606,7 @@ Assumptions & Open Questions: آیا provider می‌تواند quote خود ر�
 - Admin می‌تواند تنظیمات را تغییر دهد (با versioning و rollback).
 - Notification Engine تمام 10+ event type را پوشش می‌دهد.
 - Notifications در زمان واقعی ارسال می‌شوند (< 5 ثانیه delay).
-- Retry mechanism برای failed notifications کار می‌کند.
+- Retry mechanism با حداقل 3 تلاش برای failed notifications کار می‌کند.
 - Delivery tracking با success/failure logs ثبت می‌شود.
 - تست‌های E2E: M30-E2E-1 (Admin award selection)، M30-E2E-2 (Admin dispute resolution)، M30-E2E-3 (Admin analytics export)، M30-E2E-4 (Notification delivery for all event types).
 - پوشش تست ≥80% برای admin handlers و notification engine.
