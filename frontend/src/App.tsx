@@ -238,26 +238,33 @@ export default function App() {
         ) : requests.length === 0 ? (
           <p className="muted">No outstanding requests 🎉</p>
         ) : (
-          <ul className="request-list">
-            {requests.map((request) => (
-              <li key={request.id}>
-                <label>
-                  <input
-                    type="radio"
-                    name="selectedRequest"
-                    value={request.id}
-                    checked={selectedRequestId === request.id}
-                    onChange={(event) => setSelectedRequestId(event.target.value)}
-                  />
-                  <div>
-                    <strong>{request.context?.email ?? request.entityId}</strong>
-                    <span>
-                      {request.action} • Requested by {request.requestedBy}
-                    </span>
-                  </div>
-                </label>
-              </li>
-            ))}
+          <ul className="request-list">
+            {requests.map((request) => {
+              const rawEmail = request.context?.email;
+              const contextEmail =
+                typeof rawEmail === "string" ? rawEmail : undefined;
+              return (
+                <li key={request.id}>
+                  <label>
+                    <input
+                      type="radio"
+                      name="selectedRequest"
+                      value={request.id}
+                      checked={selectedRequestId === request.id}
+                      onChange={(event) =>
+                        setSelectedRequestId(event.target.value)
+                      }
+                    />
+                    <div>
+                      <strong>{contextEmail ?? request.entityId}</strong>
+                      <span>
+                        {request.action} ??? Requested by {request.requestedBy}
+                      </span>
+                    </div>
+                  </label>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
