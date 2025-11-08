@@ -54,7 +54,7 @@ export const buildServer = () => {
       });
       return;
     }
-    logger.error(error, "Unhandled error");
+    logger.error({ err: error }, "Unhandled error");
     reply.status(500).send({ message: "Internal server error" });
   });
 

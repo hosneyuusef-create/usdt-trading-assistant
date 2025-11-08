@@ -69,7 +69,8 @@ export const recordWalletMovement = async (movement: WalletMovement) => {
 };
 
 export const refreshWalletMetrics = async () => {
-  const balances = await db("wallets")
+  type WalletBalanceRow = { network: string; total?: string | number | null };
+  const balances = await db<WalletBalanceRow>("wallets")
     .select("network")
     .sum({ total: "balance" })
     .groupBy("network");
