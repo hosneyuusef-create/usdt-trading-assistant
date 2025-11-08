@@ -9,9 +9,11 @@ export type WalletInput = {
 };
 
 export const ensureWallet = async (input: WalletInput) => {
-  let wallet = await db("wallets").where({ address: input.address }).first();
-  if (wallet) {
-    return wallet;
+  const existingWallet = await db("wallets")
+    .where({ address: input.address })
+    .first();
+  if (existingWallet) {
+    return existingWallet;
   }
   const [inserted] = await db("wallets")
     .insert({

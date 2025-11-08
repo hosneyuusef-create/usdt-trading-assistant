@@ -23,6 +23,17 @@ export type SettlementJob = {
   updatedAt: Date;
 };
 
+type SettlementJobRow = {
+  id: string;
+  settlement_id: string | null;
+  status: SettlementJob["status"];
+  payload: Record<string, unknown>;
+  attempts: number;
+  error_message?: string | null;
+  created_at: Date;
+  updated_at: Date;
+};
+
 type SettlementWorkItem = {
   rfqId: string;
   quoteId: string;
@@ -133,7 +144,7 @@ const refreshFlaggedGauge = async () => {
   flaggedOffGauge.set(Number(count));
 };
 
-const mapJob = (row: Record<string, any>): SettlementJob => ({
+const mapJob = (row: SettlementJobRow): SettlementJob => ({
   id: row.id,
   settlementId: row.settlement_id,
   status: row.status,

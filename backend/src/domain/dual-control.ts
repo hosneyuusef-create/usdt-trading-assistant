@@ -24,6 +24,25 @@ export type DualControlRequest = {
   updatedAt: Date;
 };
 
+type DualControlRow = {
+  id: string;
+  entity_type: string;
+  entity_id: string;
+  action: string;
+  status: DualControlStatus;
+  requested_by: string;
+  primary_approver_id?: string | null;
+  approval_reason?: string | null;
+  secondary_approver_id?: string | null;
+  secondary_approved_at?: Date | null;
+  approved_at?: Date | null;
+  rejected_at?: Date | null;
+  rejection_reason?: string | null;
+  context?: Record<string, unknown>;
+  created_at: Date;
+  updated_at: Date;
+};
+
 export type CreateDualControlInput = {
   entityType: string;
   entityId: string;
@@ -158,7 +177,7 @@ export const listPendingDualControlRequests = async (): Promise<
   return rows.map(mapRow);
 };
 
-const mapRow = (row: Record<string, any>): DualControlRequest => ({
+const mapRow = (row: DualControlRow): DualControlRequest => ({
   id: row.id,
   entityType: row.entity_type,
   entityId: row.entity_id,

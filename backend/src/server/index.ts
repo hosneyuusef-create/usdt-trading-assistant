@@ -1,4 +1,4 @@
-import Fastify from "fastify";
+import Fastify, { type FastifyError } from "fastify";
 import {
   serializerCompiler,
   validatorCompiler,
@@ -17,8 +17,18 @@ import { dualControlRoutes } from "../routes/dual-control.js";
 import { rfqRoutes } from "../routes/rfqs.js";
 import { settlementRoutes } from "../routes/settlements.js";
 import { startTelegramBot } from "../telegram/bot.js";
-import { DomainError } from "../utils/errors.js";
 import { ZodError } from "zod";
+import { DomainError } from "../utils/errors.js";
+
+const isFastifyValidationError = (
+  error: unknown,
+): error is FastifyError & { validation?: unknown } => {
+  if (!error || typeof error !== "object") {
+    return false;
+  }
+  const candidate = error as FastifyError;
+  return candidate.code === "FST_ERR_VALIDATION";
+};
 
 export const buildServer = () => {
   const app = Fastify({ logger }).withTypeProvider<ZodTypeProvider>();
@@ -36,10 +46,11 @@ export const buildServer = () => {
       reply.status(error.statusCode).send({ message: error.message });
       return;
     }
-    if (error instanceof ZodError || (error as any).code === "FST_ERR_VALIDATION") {
+    if (error instanceof ZodError || isFastifyValidationError(error)) {
+      const details = error instanceof ZodError ? error.issues : error.validation;
       reply.status(400).send({
         message: "Validation failed",
-        details: (error as any).issues ?? (error as any).validation,
+        details,
       });
       return;
     }

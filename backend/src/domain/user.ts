@@ -25,6 +25,21 @@ export type User = {
   updatedAt: Date;
 };
 
+type UserRow = {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: UserRole;
+  status: UserStatus;
+  telegram_handle?: string | null;
+  phone_number?: string | null;
+  metadata: Record<string, unknown>;
+  hashed_password?: string;
+  created_at: Date;
+  updated_at: Date;
+};
+
 export type CreateUserInput = {
   email: string;
   firstName: string;
@@ -212,7 +227,7 @@ export const verifyPassword = async (
   return mapRow(row);
 };
 
-const mapRow = (row: Record<string, any>): User => ({
+const mapRow = (row: UserRow): User => ({
   id: row.id,
   email: row.email,
   firstName: row.first_name,

@@ -20,6 +20,31 @@ export type QuoteStatus =
   | "accepted"
   | "rejected";
 
+type RfqRow = {
+  id: string;
+  user_id: string;
+  asset: string;
+  notional: number | string;
+  side: RfqSide;
+  status: RfqStatus;
+  expires_at: Date;
+  metadata: Record<string, unknown>;
+  created_at: Date;
+  updated_at: Date;
+};
+
+type QuoteRow = {
+  id: string;
+  rfq_id: string;
+  liquidity_provider_id?: string | null;
+  price: number | string;
+  spread_bps: number | string;
+  status: QuoteStatus;
+  valid_until: Date;
+  created_at: Date;
+  updated_at: Date;
+};
+
 export type CreateRfqInput = {
   userId: string;
   asset: string;
@@ -161,7 +186,7 @@ export const acceptQuote = async ({
   });
 };
 
-const mapRfq = (row: Record<string, any>) => ({
+const mapRfq = (row: RfqRow) => ({
   id: row.id,
   userId: row.user_id,
   asset: row.asset,
@@ -173,7 +198,7 @@ const mapRfq = (row: Record<string, any>) => ({
   updatedAt: row.updated_at,
 });
 
-const mapQuote = (row: Record<string, any>) => ({
+const mapQuote = (row: QuoteRow) => ({
   id: row.id,
   rfqId: row.rfq_id,
   liquidityProviderId: row.liquidity_provider_id,
