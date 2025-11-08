@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { describe, expect, it } from "vitest";
 import { db } from "../src/database/client.js";
@@ -7,9 +8,10 @@ import {
   approveUser,
 } from "../src/domain/user.js";
 
-const insertApprovedUser = async (email: string) => {
+const insertApprovedUser = async (email: string, id = randomUUID()) => {
   const [row] = await db("users")
     .insert({
+      id,
       email,
       first_name: "Ops",
       last_name: "User",
