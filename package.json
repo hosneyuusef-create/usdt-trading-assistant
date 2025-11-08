@@ -1,0 +1,10 @@
+{
+  "name": "usdt-trading-assistant-root",
+  "private": true,
+  "scripts": {
+    "docs:lint": "markdownlint README.md docs/*.md"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "^0.39.0"
+  }
+}

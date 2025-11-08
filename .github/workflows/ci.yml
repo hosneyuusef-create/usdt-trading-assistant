@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      DB_URL: postgres://postgres:postgres@localhost:5432/usdt_trading_dev
+      TEST_DB_URL: postgres://postgres:postgres@localhost:5432/usdt_trading_test
+      JWT_SECRET: ci-secret
+      TELEGRAM_BOT_TOKEN: dummy-token
+      TELEGRAM_WEBHOOK_SECRET: ci-webhook
+      AUTO_SETTLEMENT_ENABLED: "true"
+      PROMETHEUS_METRICS_KEY: ci-metrics
+      LOG_LEVEL: info
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.20.5
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Install docs tooling
+        run: npm install
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: frontend
+
+      - name: Prepare databases
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE usdt_trading_dev;"
+          psql -h localhost -U postgres -c "CREATE DATABASE usdt_trading_test;"
+        env:
+          PGPASSWORD: postgres
+
+      - name: Docs lint
+        run: npm run docs:lint
+
+      - name: Backend lint
+        run: npm run lint
+        working-directory: backend
+
+      - name: Backend tests
+        run: npm test
+        working-directory: backend
+
+      - name: Backend build
+        run: npm run build
+        working-directory: backend
+
+      - name: Backend audit (prod)
+        run: npm audit --omit=dev --audit-level=high
+        working-directory: backend
+
+      - name: Backend audit (dev)
+        run: npm audit --audit-level=high
+        working-directory: backend
+
+      - name: Frontend lint
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Frontend tests
+        run: npm test
+        working-directory: frontend
+
+      - name: Frontend build
+        run: npm run build
+        working-directory: frontend
+
+      - name: Frontend audit (prod)
+        run: npm audit --omit=dev --audit-level=high
+        working-directory: frontend
+
+      - name: Frontend audit (dev)
+        run: npm audit --audit-level=high
+        working-directory: frontend
+
+      - name: Docker compose deploy
+        env:
+          DB_URL: postgres://postgres:postgres@postgres:5432/usdt_trading_dev
+          TEST_DB_URL: postgres://postgres:postgres@postgres:5432/usdt_trading_test
+          JWT_SECRET: ci-secret
+          TELEGRAM_BOT_TOKEN: dummy-token
+          TELEGRAM_WEBHOOK_SECRET: ci-webhook
+          AUTO_SETTLEMENT_ENABLED: "true"
+          PROMETHEUS_METRICS_KEY: ci-metrics
+          LOG_LEVEL: info
+        run: |
+          set -euo pipefail
+          docker compose up --build -d
+          if curl --fail --retry 5 --retry-delay 3 http://localhost:9090/health; then
+            docker compose down
+          else
+            docker compose logs backend
+            docker compose down
+            exit 1
+          fi
