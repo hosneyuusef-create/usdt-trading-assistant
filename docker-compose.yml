@@ -19,7 +19,7 @@ services:
     environment:
       DB_URL: postgres://postgres:postgres@postgres:5432/usdt_trading_dev
       TEST_DB_URL: postgres://postgres:postgres@postgres:5432/usdt_trading_test
-      JWT_SECRET: compose-secret
+      JWT_SECRET: compose-secret-0123456789-compose-secret-0123456789
       TELEGRAM_BOT_TOKEN: ""
       TELEGRAM_WEBHOOK_SECRET: compose-webhook-secret
       AUTO_SETTLEMENT_ENABLED: "true"
