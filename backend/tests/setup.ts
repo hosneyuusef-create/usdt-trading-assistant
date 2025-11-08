@@ -1,7 +1,7 @@
 import { config as loadEnv } from "dotenv";
 import fs from "node:fs";
 import path from "node:path";
-import { afterAll, beforeEach } from "vitest";
+import { afterAll, afterEach, beforeEach } from "vitest";
 import { db } from "../src/database/client.js";
 
 const envFile = fs.existsSync(path.resolve(process.cwd(), ".env.test"))
@@ -9,9 +9,21 @@ const envFile = fs.existsSync(path.resolve(process.cwd(), ".env.test"))
   : ".env";
 loadEnv({ path: path.resolve(process.cwd(), envFile) });
 
+const GLOBAL_LOCK_KEY = 42;
+
 beforeEach(async () => {
-  process.env.AUTO_SETTLEMENT_ENABLED = "true";
-  await truncateAllTables();
+  await db.raw("SELECT pg_advisory_lock(?)", [GLOBAL_LOCK_KEY]);
+  try {
+    process.env.AUTO_SETTLEMENT_ENABLED = "true";
+    await truncateAllTables();
+  } catch (error) {
+    await db.raw("SELECT pg_advisory_unlock(?)", [GLOBAL_LOCK_KEY]);
+    throw error;
+  }
+});
+
+afterEach(async () => {
+  await db.raw("SELECT pg_advisory_unlock(?)", [GLOBAL_LOCK_KEY]);
 });
 
 afterAll(async () => {

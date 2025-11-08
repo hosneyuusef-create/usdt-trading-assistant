@@ -12,5 +12,11 @@ export default defineConfig({
       reportsDirectory: "./coverage",
     },
     testTimeout: 30000,
+    hookTimeout: 60000,
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
   },
 });
