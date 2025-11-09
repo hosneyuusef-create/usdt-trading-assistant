@@ -184,3 +184,40 @@
 
 #### Risks / Notes
 - Moderate esbuild advisory still present in dev-only toolchain; mitigation plan is to adopt upstream fix when Vitest/Vite release compatible versions (tracked via Dependabot PRs).
+
+---
+
+### Phase 8 - Alerting & Monitoring *(complete)*
+- Added env-driven alert thresholds/debounce, new metrics (`alert_throttle_total`, `backend_error_gauge`), and automatic queue/flagged/backend-error alert emission with rate limiting.
+- Implemented `backend/tests/alerting.test.ts` to assert debounce and queue alert behavior.
+- README now documents the Alerting Runbook (Alert/Threshold/Action/Owner table).
+
+#### Commands & Evidence
+| Working Dir | Command | Notes |
+| --- | --- | --- |
+| `backend` | `npm run lint` / `npm test` | Includes `tests/alerting.test.ts` |
+| `frontend` | `npm run lint` / `npm test` | Ensures proxy adjustments stay green |
+| `.` | `npm run dev:smoke` | Verifies backend/frontend dev servers before shutdown |
+| `.` | `npm run docs:lint` | README/doc updates lint clean |
+| *GitHub Actions* | Run 19191541763 | Full pipeline + docker health check success |
+
+#### Risks / Notes
+- Dev-only esbuild advisory remains (tracked).
+
+---
+
+### Phase 9 - Finalization *(complete)*
+- Verified final lint/test/build/doc-lint runs locally and via CI Run 19191541763 (includes docker health/rollback).
+- README/REPORT now reflect final state, dependency policy, dev-smoke instructions, and alert runbook.
+- Declared zero known defects; only acknowledged risk is upstream dev dependency advisory.
+
+#### Commands & Evidence
+| Working Dir | Command | Notes |
+| --- | --- | --- |
+| `backend` | `npm run lint && npm test` | Final verification |
+| `frontend` | `npm run lint && npm test` | |
+| `.` | `npm run docs:lint` / `npm run dev:smoke` | |
+| *GitHub Actions* | Run 19191541763 | Lint/test/build/audit + docker deploy/rollback |
+
+#### Remaining Risks
+- `esbuild` advisory affects dev tooling only; mitigated by Dependabot monitoring and future upgrades.
