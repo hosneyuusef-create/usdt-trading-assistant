@@ -70,10 +70,17 @@ export const buildServer = () => {
       });
       return;
     }
+    const errMessage =
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error &&
+      typeof (error as { message?: unknown }).message === "string"
+        ? (error as { message?: string }).message ?? "unknown error"
+        : "unknown error";
     logger.error({ err: error }, "Unhandled error");
     markErrorGauge("unhandled");
     await recordBackendError("unhandled", {
-      message: error instanceof Error ? error.message : "unknown error",
+      message: errMessage,
     });
     reply.status(500).send({ message: "Internal server error" });
   });
