@@ -6,10 +6,31 @@ backend API (including the Telegram bot), the ops console frontend, documentatio
 ## Repository Layout
 
 - `backend/` - Fastify API, domain logic, migrations, Telegram bot integration
-- `frontend/` - Vite/React ops console used by dual-control approvers
+- `frontend/` - Vite/React ops console for dual-control approvers
 - `docs/` - Living runbooks (`dual_control.md`, `settlement_flag.md`, etc.)
 - `REPORT.md` - Execution log (phase-by-phase evidence, commands, and risks)
 - `.github/workflows/ci.yml` - Full pipeline (lint -> tests -> docs -> build -> audit -> deploy/rollback)
+
+## Architecture Diagram
+
+```text
++--------------+        HTTPS/REST         +----------------------+
+| Ops Browser  | <----------------------> | Frontend (Vite/Nginx) |
++------+-------+                           +----------+-----------+
+       |  Proxy /api                               |
+       |                                           |
+       |                                  +--------v---------+
+       |                                  | Fastify API +    |
+       |                                  | Telegram Bot     |
+       |                                  +--------+---------+
+       |                                           | Knex
+       |                                           |
+       |                                +----------v---------+
+       |                                |   PostgreSQL 16    |
+       |                                +----------+---------+
+       |                                           |
+       |<--------------- Metrics / Alerts ---------| (Prometheus scrape `/metrics`)
+```
 
 ## Developer Setup
 
@@ -35,8 +56,17 @@ npm test
 ```bash
 cd frontend
 npm install
-npm run dev                # http://127.0.0.1:5173 (proxied to backend API)
+npm run dev                # <http://127.0.0.1:5173> (proxied to backend API)
 ```
+
+### Dev smoke (backend + frontend)
+
+```bash
+npm run dev:smoke
+```
+
+The script launches `npm run dev` in backend and frontend, polls `<http://127.0.0.1:9090/health>` and
+`<http://127.0.0.1:5173>`, then shuts everything down. Use it before commits to ensure parity.
 
 ## PostgreSQL Guidance
 
@@ -100,7 +130,7 @@ SELECT email, status FROM users WHERE email = 'smoke-user@example.com';
 
 - `npm run dev` - dual-control panel with validation, error surfacing, and manual refresh
 - `npm test` - Testing Library coverage for validation + submission paths
-- `VITE_API_BASE_URL` defaults to `http://127.0.0.1:9090/api`
+- `VITE_API_BASE_URL` defaults to `<http://127.0.0.1:9090/api>`
 
 ## CI/CD & Deploy
 
@@ -114,6 +144,10 @@ SELECT email, status FROM users WHERE email = 'smoke-user@example.com';
 | Build | `npm run build` (backend TypeScript) + `npm run build` (frontend Vite) |
 | Security | `npm audit --omit=dev --audit-level=high` and `npm audit --audit-level=high` in both packages |
 | Deploy | `docker compose up --build -d`, `/health` probe, automatic rollback on failure |
+
+Latest verification:
+[CI run 19191541763](https://github.com/hosneyuusef-create/usdt-trading-assistant/actions/runs/19191541763/job/54866674041)
+(includes docker health check with `{"status":"ok","timestamp":"2025-11-08T10:07:15.058Z"}`).
 
 ### Local dry-run commands
 
@@ -139,7 +173,7 @@ npm audit --audit-level=high
 
 ```bash
 docker compose up --build -d
-curl --fail --retry 5 --retry-delay 2 http://127.0.0.1:9090/health
+curl --fail --retry 5 --retry-delay 2 <http://127.0.0.1:9090/health>
 
 # rollback on failure (abridged)
 docker compose logs backend
@@ -157,3 +191,46 @@ Compose services:
 - `frontend` - Nginx serving the Vite build (port 4173 mapped to container port 80)
 
 The GitHub workflow mirrors these commands; if `/health` fails the job captures logs and rolls everything back.
+
+## Dependency & Security Policy
+
+- `.github/dependabot.yml` schedules weekly dependency PRs for `/backend` and `/frontend`
+  npm workspaces (labels `dependencies` plus an area-specific label).
+- `.github/workflows/ci.yml` enforces both `npm audit --omit=dev --audit-level=high` and
+  `npm audit --audit-level=high` (backend and frontend); any High/Critical issue fails CI.
+- Manual remediation: when Dependabot opens a PR, run `npm install`, `npm test`, `npm run build`,
+  and both audit commands locally before merging.
+
+## Alerting Runbook
+
+| Alert | Threshold Source | Action | Owner |
+| --- | --- | --- | --- |
+| `auto_settlement_disabled` | Triggered when settlements are flagged because `AUTO_SETTLEMENT_ENABLED=false` | Review reason, re-enable flag when safe, and monitor queue/flag tables (`docs/settlement_flag.md`) | Operations Lead |
+| `settlement_queue_backlog` | `ALERT_QUEUE_THRESHOLD` queued jobs (env-configurable) | Inspect `settlement_jobs`, scale workers or investigate stuck jobs, ensure wallet balances available | Platform Engineering |
+| `settlement_flagged_spike` | `ALERT_FLAGGED_THRESHOLD` flagged events within `ALERT_DEBOUNCE_SECONDS` seconds | Query `settlement_flagged_events`, coordinate with Risk to manually settle or re-enable automation | Risk & Compliance |
+| `backend_error_rate` | `ALERT_ERROR_THRESHOLD` errors within `ALERT_DEBOUNCE_SECONDS` seconds, via `/metrics` `backend_error_gauge` | Check Fastify logs, review `/metrics`, open incident if recurring | Platform Engineering |
+
+## Troubleshooting
+
+### ESM Loader / `ERR_MODULE_NOT_FOUND`
+
+- Verify Node >= 18.19 so native ES modules are supported.
+- If you see `Cannot use import statement outside a module`, delete `backend/dist`, reinstall dependencies,
+  and rerun `npm test`.
+- Vitest resolves aliases from `tsconfig.json`; restart `npm run dev` after changing compiler options.
+
+### Frontend Proxy / CORS
+
+- The Vite dev server proxies `/api` to `<http://127.0.0.1:9090>`. Start the backend first and keep the host as
+  `127.0.0.1` to match Fastify CORS.
+- To hit another backend port, set `VITE_API_BASE_URL` in `.env` and restart Vite so the proxy table refreshes.
+- If requests hang, check the browser console for CORS errors and inspect backend logs (`LOG_LEVEL=debug`) for
+  rejected origins.
+
+### Wallet Balance Drift
+
+- Each `recordWalletMovement` call ends with `refreshWalletMetrics`. Run `psql ... SELECT * FROM wallet_transactions`
+  to confirm entries exist if gauges look stale.
+- Execute `npx tsx scripts/manual-smoke.ts --wallet-refresh` or restart the backend to repopulate Prometheus gauges.
+- For production incidents, follow `docs/settlement_flag.md` ("Wallet impact when AUTO_SETTLEMENT_DISABLED")
+  for reconciliation steps.

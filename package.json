@@ -2,7 +2,8 @@
   "name": "usdt-trading-assistant-root",
   "private": true,
   "scripts": {
-    "docs:lint": "markdownlint README.md docs/*.md"
+    "docs:lint": "markdownlint README.md docs/*.md",
+    "dev:smoke": "node scripts/dev-smoke.js"
   },
   "devDependencies": {
     "markdownlint-cli": "^0.39.0"

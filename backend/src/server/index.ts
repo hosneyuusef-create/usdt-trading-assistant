@@ -19,6 +19,8 @@ import { settlementRoutes } from "../routes/settlements.js";
 import { startTelegramBot } from "../telegram/bot.js";
 import { ZodError } from "zod";
 import { DomainError } from "../utils/errors.js";
+import { recordBackendError } from "../domain/alerting.js";
+import { errorGauge } from "../domain/metrics.js";
 
 const isFastifyValidationError = (
   error: unknown,
@@ -28,6 +30,20 @@ const isFastifyValidationError = (
   }
   const candidate = error as FastifyError;
   return candidate.code === "FST_ERR_VALIDATION";
+};
+
+const errorResetTimers = new Map<string, NodeJS.Timeout>();
+const markErrorGauge = (moduleName: string) => {
+  errorGauge.labels({ module: moduleName }).set(1);
+  const existingTimer = errorResetTimers.get(moduleName);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+  const handle = setTimeout(() => {
+    errorGauge.labels({ module: moduleName }).set(0);
+    errorResetTimers.delete(moduleName);
+  }, env.ALERT_DEBOUNCE_SECONDS * 1000);
+  errorResetTimers.set(moduleName, handle);
 };
 
 export const buildServer = () => {
@@ -41,7 +57,7 @@ export const buildServer = () => {
   app.register(helmet);
   app.register(rateLimit, { max: 200, timeWindow: "1 minute" });
 
-  app.setErrorHandler((error, _request, reply) => {
+  app.setErrorHandler(async (error, _request, reply) => {
     if (error instanceof DomainError) {
       reply.status(error.statusCode).send({ message: error.message });
       return;
@@ -55,6 +71,10 @@ export const buildServer = () => {
       return;
     }
     logger.error({ err: error }, "Unhandled error");
+    markErrorGauge("unhandled");
+    await recordBackendError("unhandled", {
+      message: error instanceof Error ? error.message : "unknown error",
+    });
     reply.status(500).send({ message: "Internal server error" });
   });
 

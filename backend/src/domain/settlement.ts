@@ -1,9 +1,15 @@
 import { randomUUID } from "node:crypto";
 import { db } from "../database/client.js";
+import { env } from "../config/env.js";
 import { DomainError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
 import { isAutoSettlementEnabled } from "./feature-flags.js";
-import { emitAlert } from "./alerting.js";
+import {
+  emitAlert,
+  ensureAlertRule,
+  maybeEmitFlaggedAlert,
+  maybeEmitQueueAlert,
+} from "./alerting.js";
 import {
   autoSettlementStatusGauge,
   flaggedOffGauge,
@@ -133,7 +139,9 @@ export const refreshQueueGauge = async () => {
       .where({ status: "queued" })
       .count<{ count: string }>("id as count")
       .first()) ?? { count: "0" };
-  settlementQueueGauge.set(Number(count));
+  const queueSize = Number(count);
+  settlementQueueGauge.set(queueSize);
+  await maybeEmitQueueAlert(queueSize);
 };
 
 const refreshFlaggedGauge = async () => {
@@ -142,6 +150,7 @@ const refreshFlaggedGauge = async () => {
       .count<{ count: string }>("id as count")
       .first()) ?? { count: "0" };
   flaggedOffGauge.set(Number(count));
+  await maybeEmitFlaggedAlert();
 };
 
 const mapJob = (row: SettlementJobRow): SettlementJob => ({
@@ -154,31 +163,6 @@ const mapJob = (row: SettlementJobRow): SettlementJob => ({
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });
-
-const ensureAlertRuleId = async (): Promise<string> => {
-  const existing = await db("alert_rules")
-    .where({ name: AUTO_SETTLEMENT_ALERT_NAME })
-    .first();
-  if (existing) {
-    return existing.id;
-  }
-  const [inserted] = await db("alert_rules")
-    .insert({
-      id: randomUUID(),
-      name: AUTO_SETTLEMENT_ALERT_NAME,
-      metric_key: "auto_settlement_status",
-      threshold: 0,
-      window_seconds: 60,
-      severity: "warning",
-      debounce_seconds: 60,
-      owner_email: "ops@example.com",
-      is_active: true,
-      created_at: new Date(),
-      updated_at: new Date(),
-    })
-    .returning("id");
-  return inserted.id;
-};
 
 const flagSettlement = async (
   workItem: SettlementWorkItem,
@@ -197,9 +181,15 @@ const flagSettlement = async (
   });
   settlementFlaggedCounter.inc({ reason });
   await refreshFlaggedGauge();
-  const ruleId = await ensureAlertRuleId();
+  const rule = await ensureAlertRule({
+    name: AUTO_SETTLEMENT_ALERT_NAME,
+    metricKey: "auto_settlement_status",
+    threshold: 0,
+    severity: "warning",
+    ownerEmail: env.ALERT_OWNER_EMAIL,
+  });
   await emitAlert({
-    ruleId,
+    ruleId: rule.id,
     severity: "warning",
     details: { reason, rfqId: workItem.rfqId, quoteId: workItem.quoteId },
   });

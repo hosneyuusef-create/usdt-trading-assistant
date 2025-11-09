@@ -61,6 +61,13 @@ export const alertRateCounter = new Counter({
   registers: [metricsRegistry],
 });
 
+export const alertThrottleCounter = new Counter({
+  name: "alert_throttle_total",
+  help: "Alerts skipped because of debounce/rate-limiting",
+  labelNames: ["rule_id"],
+  registers: [metricsRegistry],
+});
+
 export const queueLatencyGauge = new Gauge({
   name: "settlement_queue_latency_ms",
   help: "Average latency per settlement queue",
