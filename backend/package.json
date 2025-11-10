@@ -30,7 +30,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.5",
     "fastify": "^4.28.1",
-    "fastify-plugin": "^4.5.1",
+    "fastify-plugin": "^5.1.0",
     "fastify-type-provider-zod": "^1.2.0",
     "grammy": "^1.38.3",
     "jsonwebtoken": "^9.0.2",
